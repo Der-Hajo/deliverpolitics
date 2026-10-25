@@ -1,0 +1,46 @@
+item_id,index_id,status,title_de,title_en,fundstelle,justification_de,justification_en,review_status,last_update
+CDU-01,DE-BT21-CDUCSU,aktiv,Agenda für die Fleißigen,An agenda for hard-working people,Langf. S. 11–13,,,geprüft,2026-10-18
+CDU-02,DE-BT21-CDUCSU,aktiv,Freiräume für die Wirtschaft,Freedom for business,Langf. S. 13–19,,,geprüft,2026-10-18
+CDU-03,DE-BT21-CDUCSU,aktiv,"Bezahlbare, sichere und saubere Energie","Affordable, secure and clean energy",Langf. S. 19–21,,,geprüft,2026-10-18
+CDU-04,DE-BT21-CDUCSU,aktiv,Marktwirtschaftlicher Klima- und Umweltschutz,Market-based climate and environmental protection,Langf. S. 21–24,,,geprüft,2026-10-18
+CDU-05,DE-BT21-CDUCSU,aktiv,"Forschung, Innovationen, neue Technologien","Research, innovation and new technologies",Langf. S. 24–29,,,geprüft,2026-10-18
+CDU-06,DE-BT21-CDUCSU,aktiv,Starker und gerechter Sozialstaat,A strong and fair welfare state,Langf. S. 29–31,,,geprüft,2026-10-18
+CDU-07,DE-BT21-CDUCSU,aktiv,"Eigentum, Vermögensbildung, Altersvorsorge","Property, wealth building and pensions",Langf. S. 31–33,,,geprüft,2026-10-18
+CDU-08,DE-BT21-CDUCSU,aktiv,Landwirtschaft mit Zukunft,Agriculture with a future,Langf. S. 33–36,,,geprüft,2026-10-18
+CDU-09,DE-BT21-CDUCSU,aktiv,Recht und Ordnung,Law and order,Langf. S. 36–40,,,geprüft,2026-10-18
+CDU-10,DE-BT21-CDUCSU,aktiv,Stopp der illegalen Migration,Stopping illegal migration,Langf. S. 40–42,,,geprüft,2026-10-18
+CDU-11,DE-BT21-CDUCSU,aktiv,Wehrhafte Demokratie,A democracy able to defend itself,Langf. S. 42–45,,,geprüft,2026-10-18
+CDU-12,DE-BT21-CDUCSU,aktiv,Verantwortung in der Welt,Responsibility in the world,Langf. S. 45–49,,,geprüft,2026-10-18
+CDU-13,DE-BT21-CDUCSU,aktiv,Voll verteidigungsfähige Bundeswehr,A fully defence-ready Bundeswehr,Langf. S. 49–52,,,geprüft,2026-10-18
+CDU-14,DE-BT21-CDUCSU,aktiv,Starkes Europa,A strong Europe,Langf. S. 52–53,,,geprüft,2026-10-18
+CDU-15,DE-BT21-CDUCSU,aktiv,Leitkultur und Zusammenhalt,Guiding culture and cohesion,Langf. S. 54–58,,,geprüft,2026-10-18
+CDU-16,DE-BT21-CDUCSU,aktiv,Familie und Verantwortung,Family and responsibility,Langf. S. 58–60,,,geprüft,2026-10-18
+CDU-17,DE-BT21-CDUCSU,aktiv,Aufstieg durch Bildung,Advancement through education,Langf. S. 60–62,,,geprüft,2026-10-18
+CDU-18,DE-BT21-CDUCSU,aktiv,Berufliche und akademische Bildung,Strong vocational and academic education,Langf. S. 62–65,,,geprüft,2026-10-18
+CDU-19,DE-BT21-CDUCSU,aktiv,Gesundheit und Pflege,Good health and care,Langf. S. 65–68,,,geprüft,2026-10-18
+CDU-20,DE-BT21-CDUCSU,aktiv,"Bauen, Wohnen, Mobilität","Affordable building, housing and mobility",Langf. S. 68–71,,,geprüft,2026-10-18
+CDU-21,DE-BT21-CDUCSU,aktiv,Funktionierender Staat,A state that works,Langf. S. 71–74,,,geprüft,2026-10-18
+SPD-01,DE-BT21-SPD,aktiv,Wachstum und sichere Arbeitsplätze,Growth and secure jobs,S. 6–10,,,geprüft,2026-10-18
+SPD-08,DE-BT21-SPD,aktiv,Stabile Renten,Stable pensions,S. 24–25,,,geprüft,2026-10-18
+SPD-02,DE-BT21-SPD,aktiv,Made in Germany 2.0,Made in Germany 2.0,S. 10–12,,,geprüft,2026-10-18
+SPD-03,DE-BT21-SPD,aktiv,"Starker Arbeitsmarkt, gute Arbeitsbedingungen","A strong labour market, good working conditions",S. 12–14,,,geprüft,2026-10-18
+SPD-04,DE-BT21-SPD,aktiv,Gute Bildung,Good education,S. 15–16,,,geprüft,2026-10-18
+SPD-05,DE-BT21-SPD,aktiv,Finanzpolitik,Fiscal policy,S. 16–19,,,geprüft,2026-10-18
+SPD-06,DE-BT21-SPD,aktiv,Bezahlbares Zuhause,Affordable housing,S. 20–22,,,geprüft,2026-10-18
+SPD-07,DE-BT21-SPD,aktiv,Arbeit für ein gutes Leben,Work for a good life,S. 23–24,,,geprüft,2026-10-18
+SPD-09,DE-BT21-SPD,aktiv,Verlässlicher Alltag für Familien,Reliable everyday life for families,S. 25–28,,,geprüft,2026-10-18
+SPD-10,DE-BT21-SPD,aktiv,Gesundheitsversorgung,Health care,S. 28–30,,,geprüft,2026-10-18
+SPD-11,DE-BT21-SPD,aktiv,Menschenwürdige Pflege,Humane long-term care,S. 31–32,,,geprüft,2026-10-18
+SPD-12,DE-BT21-SPD,aktiv,"Klimaschutz, den sich jeder leisten kann",Climate protection everyone can afford,S. 33–34,,,geprüft,2026-10-18
+SPD-13,DE-BT21-SPD,aktiv,"Pünktliche Bahn, gute Mobilität","Punctual trains, good mobility",S. 34–37,,,geprüft,2026-10-18
+SPD-14,DE-BT21-SPD,aktiv,"Ein Staat, der besser funktioniert",A state that works better,S. 37–39,,,geprüft,2026-10-18
+SPD-15,DE-BT21-SPD,aktiv,"Zusammenhalt, gegen die Feinde der Demokratie","Cohesion, against the enemies of democracy",S. 40–42,,,geprüft,2026-10-18
+SPD-16,DE-BT21-SPD,aktiv,"Respekt, Sicherheit, Schutz vor Gewalt","Respect, security, protection from violence",S. 42–46,,,geprüft,2026-10-18
+SPD-17,DE-BT21-SPD,aktiv,"Gleichstellung, gegen Rassismus und Diskriminierung","Equality, against racism and discrimination",S. 47–49,,,geprüft,2026-10-18
+SPD-18,DE-BT21-SPD,aktiv,"Medienvielfalt, Kunst, Kultur, Sport","Media diversity, arts, culture, sport",S. 49–52,,,geprüft,2026-10-18
+SPD-19,DE-BT21-SPD,aktiv,"Starke Kommunen, ländlicher Raum, Landwirtschaft","Strong municipalities, rural areas, agriculture",S. 52–54,,,geprüft,2026-10-18
+SPD-20,DE-BT21-SPD,aktiv,Moderne Einwanderungsgesellschaft,A modern immigration society,S. 54–56,,,geprüft,2026-10-18
+SPD-21,DE-BT21-SPD,aktiv,Freiheit und Sicherheit,Freedom and security,S. 57–59,,,geprüft,2026-10-18
+SPD-22,DE-BT21-SPD,ausgeschlossen,"Starkes, handlungsfähiges Europa","A strong, capable Europe",S. 59–61,Kapitel ohne wertbare Zusage (E25–E30),Chapter without a measurable commitment,geprüft,2026-10-18
+SPD-23,DE-BT21-SPD,aktiv,Europäische Interessen in der Welt,European interests in the world,S. 61–63,,,geprüft,2026-10-18
+SPD-24,DE-BT21-SPD,aktiv,Gerechte Welt,A fair world,S. 63–65,,,geprüft,2026-10-18
