@@ -19,7 +19,7 @@ Ein Privatprojekt von Hajo Warmbier. Die Seite ist eine neutrale Plattform: Sie 
 
 Die Seite ist eine Beta-Version. Ziel ist Rückmeldung von Wissenschaft, Politologie, Studierenden und Journalisten, um die Methodik zu verbessern, ohne sie zu verkomplizieren.
 
-Feedback: über das Formular auf der Website oder per E-Mail an feedback@deliverpolitics.org.
+Feedback: per E-Mail an feedback@deliverpolitics.org (siehe Abschnitt „Feedback“ auf der [Projektseite](https://deliverpolitics.org/projekt.html#feedback)).
 
 ## Was liegt in diesem Repository?
 
