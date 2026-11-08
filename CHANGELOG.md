@@ -8,6 +8,7 @@ Hier steht jede Änderung an der veröffentlichten Website mit Datum und einem S
 - Korrektur Oktober 2026: CDU/CSU 30,1 % statt 28,4 %, SPD 37,4 % statt 36,9 % (Gesamtprogramm); Kernversprechen unverändert. Der festgestellte Wert bleibt in den Daten erhalten, die Korrektur steht als eigene Zeile daneben.
 - Alle Balkengrafiken haben einheitlich ein Mouseover (Antippen bzw. Tastaturfokus) mit der Liste der Zusagen je Status.
 - Vorschau für geteilte Links: eigene Beschreibung je Seite, Spotlight-Seiten mit Datum und Autor.
+- Thema „Unternehmen & Finanzmarkt“ heißt jetzt „Wirtschaft, Finanzmarkt & Sport“ (CAP-Hauptthema 15, Domestic Commerce, umfasst auch Sport).
 
 ## 2026-11-01
 
