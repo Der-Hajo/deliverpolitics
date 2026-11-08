@@ -2,6 +2,13 @@
 
 Hier steht jede Änderung an der veröffentlichten Website mit Datum und einem Satz. Neueste Einträge zuerst. Inhaltliche und methodische Änderungen stehen zusätzlich im Abschnitt „Korrekturen“ der Seite „So messen wir“ bzw. im monatlichen Update.
 
+## 2026-11-08
+
+- Methodik: Zusagen zählen jetzt unabhängig davon, ob EU, Bund oder Länder sie beschließen müssen; erfüllt, wenn der Rechtsakt gilt (neue Regel E40, angepasst E27, E32, E33, E39). Dadurch 17 zusätzliche Teilzusagen (CDU/CSU 11, SPD 6), Werte rückwirkend ab Februar 2025 neu berechnet.
+- Korrektur Oktober 2026: CDU/CSU 30,1 % statt 28,4 %, SPD 37,4 % statt 36,9 % (Gesamtprogramm); Kernversprechen unverändert. Der festgestellte Wert bleibt in den Daten erhalten, die Korrektur steht als eigene Zeile daneben.
+- Alle Balkengrafiken haben einheitlich ein Mouseover (Antippen bzw. Tastaturfokus) mit der Liste der Zusagen je Status.
+- Vorschau für geteilte Links: eigene Beschreibung je Seite, Spotlight-Seiten mit Datum und Autor.
+
 ## 2026-11-01
 
 - Korrektur: Datenschutzerklärung wieder in der GitHub-Fassung (mit dem Monatsupdate war versehentlich die frühere Strato-Fassung veröffentlicht worden); Browser-Icons wieder in der ursprünglichen Fassung.
