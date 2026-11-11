@@ -2,6 +2,11 @@
 
 Hier steht jede Änderung an der veröffentlichten Website mit Datum und einem Satz. Neueste Einträge zuerst. Inhaltliche und methodische Änderungen stehen zusätzlich im Abschnitt „Korrekturen“ der Seite „So messen wir“ bzw. im monatlichen Update.
 
+## 2026-11-11
+
+- Korrektur: Die Zitierhilfe auf den Seiten der Parteien und der Vorhaben nannte eine Adresse ohne den Ordner `bund-21/`; der Link führte ins Leere.
+- Korrektur: Sechs Seiten des Bundes (Übersicht, Gesamtprogramm, Kernversprechen, Updates, beide Parteien) nannten Suchmaschinen eine fehlerhafte kanonische Adresse.
+
 ## 2026-11-08
 
 - Methodik: Zusagen zählen jetzt unabhängig davon, ob EU, Bund oder Länder sie beschließen müssen; erfüllt, wenn der Rechtsakt gilt (neue Regel E40, angepasst E27, E32, E33, E39). Dadurch 17 zusätzliche Teilzusagen (CDU/CSU 11, SPD 6), Werte rückwirkend ab Februar 2025 neu berechnet.
