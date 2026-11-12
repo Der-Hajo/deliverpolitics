@@ -1,0 +1,83 @@
+kv_id,index_id,seite,satz,tz_id
+KV-CDU-01,DE-BT21-CDUCSU-KERN,S. 1,"Einkommensteuertarif anpassen, niedrige und mittlere Einkommen entlasten",CDU-01-T1
+KV-CDU-02,DE-BT21-CDUCSU-KERN,S. 1,Überstundenzuschläge bei Vollzeit steuerfrei,CDU-01-T7
+KV-CDU-03,DE-BT21-CDUCSU-KERN,S. 1,Pendlerpauschale erhöhen,CDU-01-T6
+KV-CDU-04,DE-BT21-CDUCSU-KERN,S. 1,wöchentliche statt tägliche Höchstarbeitszeit,CDU-01-T8
+KV-CDU-05,DE-BT21-CDUCSU-KERN,S. 1,digitale „Work-and-Stay-Agentur“,CDU-01-T12
+KV-CDU-06,DE-BT21-CDUCSU-KERN,S. 2,Unternehmenssteuerbelastung auf maximal 25 %,CDU-02-T1
+KV-CDU-07,DE-BT21-CDUCSU-KERN,S. 2,Rest-Soli abschaffen,CDU-02-T5
+KV-CDU-08,DE-BT21-CDUCSU-KERN,S. 2,Abschreibungen verbessern (AfA-Tabellen),CDU-02-T8
+KV-CDU-09,DE-BT21-CDUCSU-KERN,S. 2,Verlustverrechnung verbessern: Verlustrücktrag,CDU-02-T6
+KV-CDU-10,DE-BT21-CDUCSU-KERN,S. 2,Verlustverrechnung verbessern: Mindestbesteuerung,CDU-02-T7
+KV-CDU-11,DE-BT21-CDUCSU-KERN,S. 2,Entrümpelungsgesetze,CDU-02-T11
+KV-CDU-12,DE-BT21-CDUCSU-KERN,S. 2,Bürokratie-Checks,CDU-02-T13
+KV-CDU-13,DE-BT21-CDUCSU-KERN,S. 2,Statistikpflichten abbauen,CDU-02-T19
+KV-CDU-14,DE-BT21-CDUCSU-KERN,S. 2,nationales Lieferkettengesetz abschaffen,CDU-02-T15
+KV-CDU-15,DE-BT21-CDUCSU-KERN,S. 2,Übererfüllung von EU-Recht zurücknehmen,CDU-02-T17
+KV-CDU-16,DE-BT21-CDUCSU-KERN,S. 2,Stromsteuer senken,CDU-03-T5
+KV-CDU-17,DE-BT21-CDUCSU-KERN,S. 2,Netzentgelte senken,CDU-03-T6
+KV-CDU-18,DE-BT21-CDUCSU-KERN,S. 2,Heizungsgesetz der Ampel abschaffen,CDU-03-T8
+KV-CDU-19,DE-BT21-CDUCSU-KERN,S. 2,Bundesdigitalministerium einrichten,CDU-05-T19
+KV-CDU-20,DE-BT21-CDUCSU-KERN,S. 3,"3,5 % des BIP für Forschung und Entwicklung bis 2030",CDU-05-T7
+KV-CDU-21,DE-BT21-CDUCSU-KERN,S. 3,Hightech-Agenda vorlegen,CDU-05-T1
+KV-CDU-22,DE-BT21-CDUCSU-KERN,S. 3,neue Raumfahrtstrategie,CDU-05-T2
+KV-CDU-23,DE-BT21-CDUCSU-KERN,S. 3,„Gründerschutzzone“,CDU-05-T12
+KV-CDU-24,DE-BT21-CDUCSU-KERN,S. 3,Bürgergeld durch Neue Grundsicherung ersetzen,CDU-06-T1
+KV-CDU-25,DE-BT21-CDUCSU-KERN,S. 3,höhere Freibeträge bei der Grunderwerbsteuer,CDU-07-T1
+KV-CDU-26,DE-BT21-CDUCSU-KERN,S. 3,höhere Freibeträge bei der Erbschaftsteuer,CDU-07-T3
+KV-CDU-27,DE-BT21-CDUCSU-KERN,S. 3,höhere Freibeträge beim Sparen,CDU-07-T4
+KV-CDU-28,DE-BT21-CDUCSU-KERN,S. 3,keine Vermögensteuer,CDU-07-T2
+KV-CDU-29,DE-BT21-CDUCSU-KERN,S. 3,Renteneintrittsalter bleibt,CDU-07-T8
+KV-CDU-30,DE-BT21-CDUCSU-KERN,S. 3,keine Rentenkürzungen,CDU-07-T10
+KV-CDU-31,DE-BT21-CDUCSU-KERN,S. 3,Aktivrente: 2.000 € im Monat steuerfrei,CDU-07-T11
+KV-CDU-32,DE-BT21-CDUCSU-KERN,S. 3,Frühstart-Rente: 10 € im Monat,CDU-07-T13
+KV-CDU-33,DE-BT21-CDUCSU-KERN,S. 3,Agrardieselrückvergütung wieder vollständig,CDU-08-T1
+KV-CDU-34,DE-BT21-CDUCSU-KERN,S. 4,keine zwangsweise Flächenstilllegung,CDU-08-T4
+KV-CDU-35,DE-BT21-CDUCSU-KERN,S. 4,"Wolfsbestand regeln, Wolf bejagbar machen",CDU-08-T8
+KV-CDU-36,DE-BT21-CDUCSU-KERN,S. 4,elektronische Fußfessel verstärkt einsetzen,CDU-09-T5
+KV-CDU-37,DE-BT21-CDUCSU-KERN,S. 4,Videokameras und automatisierte Gesichtserkennung an Brennpunkten,CDU-09-T25
+KV-CDU-38,DE-BT21-CDUCSU-KERN,S. 4,Speicherpflicht für IP-Adressen,CDU-09-T8
+KV-CDU-39,DE-BT21-CDUCSU-KERN,S. 4,Cannabis-Gesetz abschaffen,CDU-09-T7
+KV-CDU-40,DE-BT21-CDUCSU-KERN,S. 4,Grenzen kontrollieren,CDU-10-T2
+KV-CDU-41,DE-BT21-CDUCSU-KERN,S. 4,Zurückweisungen an der Grenze,CDU-10-T1
+KV-CDU-42,DE-BT21-CDUCSU-KERN,S. 4,weitere sichere Herkunftsländer,CDU-10-T8
+KV-CDU-43,DE-BT21-CDUCSU-KERN,S. 4,wieder nach Syrien und Afghanistan abschieben,CDU-10-T12
+KV-CDU-44,DE-BT21-CDUCSU-KERN,S. 4,Familiennachzug zu subsidiär Schutzberechtigten aussetzen,CDU-10-T4
+KV-CDU-45,DE-BT21-CDUCSU-KERN,S. 4,alle freiwilligen Aufnahmeprogramme beenden,CDU-10-T5
+KV-CDU-46,DE-BT21-CDUCSU-KERN,S. 4,"Leistungen für Ausreisepflichtige nach „Bett, Brot und Seife“",CDU-10-T6
+KV-CDU-47,DE-BT21-CDUCSU-KERN,S. 5,Unterstützen von Terrororganisationen konsequenter unter Strafe stellen,CDU-11-T1
+KV-CDU-48,DE-BT21-CDUCSU-KERN,S. 5,Ausweisung,CDU-11-T2
+KV-CDU-49,DE-BT21-CDUCSU-KERN,S. 5,Entzug des Aufenthaltstitels,CDU-11-T3
+KV-CDU-50,DE-BT21-CDUCSU-KERN,S. 5,Verlust der deutschen Staatsbürgerschaft,CDU-11-T4
+KV-CDU-51,DE-BT21-CDUCSU-KERN,S. 5,"Moscheen schließen, in denen Hass und Antisemitismus gepredigt wird",CDU-11-T5
+KV-CDU-52,DE-BT21-CDUCSU-KERN,S. 5,echte Zollpolizei,CDU-11-T14
+KV-CDU-53,DE-BT21-CDUCSU-KERN,S. 5,Kriminelle müssen Herkunft ihres Vermögens nachweisen,CDU-11-T15
+KV-CDU-54,DE-BT21-CDUCSU-KERN,S. 5,Nationaler Sicherheitsrat im Kanzleramt,CDU-12-T2
+KV-CDU-55,DE-BT21-CDUCSU-KERN,S. 5,"Ukraine unterstützen, auch mit Waffenlieferungen",CDU-12-T1
+KV-CDU-56,DE-BT21-CDUCSU-KERN,S. 6,aufwachsende Wehrpflicht,CDU-13-T6
+KV-CDU-57,DE-BT21-CDUCSU-KERN,S. 6,Zwei-Prozent-Ziel – mindestens,CDU-13-T3
+KV-CDU-58,DE-BT21-CDUCSU-KERN,S. 6,verpflichtende Integrationsvereinbarungen,CDU-15-T1
+KV-CDU-59,DE-BT21-CDUCSU-KERN,S. 6,Express-Einbürgerung rückgängig machen,CDU-15-T3
+KV-CDU-60,DE-BT21-CDUCSU-KERN,S. 6,generelle doppelte Staatsbürgerschaft rückgängig machen,CDU-15-T4
+KV-CDU-61,DE-BT21-CDUCSU-KERN,S. 6,Ehrenamts- und Übungsleiterpauschale spürbar erhöhen,CDU-15-T6
+KV-CDU-62,DE-BT21-CDUCSU-KERN,S. 6,Elterngeld verbessern,CDU-16-T1
+KV-CDU-63,DE-BT21-CDUCSU-KERN,S. 6,Kindergeld anheben,CDU-16-T2
+KV-CDU-64,DE-BT21-CDUCSU-KERN,S. 6,am Ehegattensplitting festhalten,CDU-16-T3
+KV-CDU-65,DE-BT21-CDUCSU-KERN,S. 7,steuerliche Absetzbarkeit von Betreuungskosten erhöhen,CDU-16-T4
+KV-CDU-66,DE-BT21-CDUCSU-KERN,S. 7,Selbstbestimmungsgesetz abschaffen,CDU-16-T11
+KV-CDU-67,DE-BT21-CDUCSU-KERN,S. 7,Teilqualifizierungen fördern,CDU-18-T3
+KV-CDU-68,DE-BT21-CDUCSU-KERN,S. 7,Hinzuverdienstmöglichkeiten beim BAföG verbessern,CDU-18-T13
+KV-CDU-69,DE-BT21-CDUCSU-KERN,S. 8,Bauordnungs- und Raumordnungsrecht entschlacken,CDU-20-T18
+KV-CDU-70,DE-BT21-CDUCSU-KERN,S. 8,"dauerhaftes Bauen, wo bisher nur Sonderregelungen",CDU-20-T3
+KV-CDU-71,DE-BT21-CDUCSU-KERN,S. 8,energetische Sanierung von Erbschaft- und Schenkungsteuer abziehbar,CDU-20-T12
+KV-CDU-72,DE-BT21-CDUCSU-KERN,S. 8,digitale Kfz-Anmeldung als Standard,CDU-20-T19
+KV-CDU-73,DE-BT21-CDUCSU-KERN,S. 8,digitale Fahrzeugakte,CDU-20-T17
+KV-CDU-74,DE-BT21-CDUCSU-KERN,S. 8,Zahl der Beauftragten halbieren,CDU-21-T8
+KV-CDU-75,DE-BT21-CDUCSU-KERN,S. 8,mindestens 10 % weniger Personal in Ministerial- und Bundestagsverwaltung,CDU-21-T9
+KV-CDU-76,DE-BT21-CDUCSU-KERN,S. 8,an der Schuldenbremse festhalten,CDU-21-T2
+KV-CDU-77,DE-BT21-CDUCSU-KERN,S. 8,keine Haftung für Schulden anderer EU-Staaten,CDU-21-T4
+KV-SPD-01,DE-BT21-SPD-KERN,"S. 5, 66",höherer Mindestlohn: 15 €,SPD-07-T2
+KV-SPD-02,DE-BT21-SPD-KERN,"S. 5, 66",Einkommensteuer-Entlastung für Gering- und Normalverdiener,SPD-07-T8
+KV-SPD-03,DE-BT21-SPD-KERN,"S. 5, 66",Mehrwertsteuer auf Lebensmittel auf 5 %,SPD-07-T11
+KV-SPD-04,DE-BT21-SPD-KERN,"S. 5, 66",„Made in Germany“-Bonus,SPD-01-T8
+KV-SPD-05,DE-BT21-SPD-KERN,S. 66,Deutschlandfonds einrichten,SPD-01-T7

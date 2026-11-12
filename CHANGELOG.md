@@ -2,6 +2,14 @@
 
 Hier steht jede Änderung an der veröffentlichten Website mit Datum und einem Satz. Neueste Einträge zuerst. Inhaltliche und methodische Änderungen stehen zusätzlich im Abschnitt „Korrekturen“ der Seite „So messen wir“ bzw. im monatlichen Update.
 
+## 2026-11-12
+
+- Neu: Baden-Württemberg, 18. Wahlperiode – Index für Grüne (13,6 %, 30 von 221 Zusagen) und CDU (10,5 %, 27 von 256), Stand 31.10.2026; Übersicht mit Themen, Programmgrundlage und Hinweis zu Absichtssätzen, 45 Vorhabenseiten, Updates.
+- Kopien der beiden Wahlprogramme unter `programme/laender/bw-18/`.
+- „So messen wir“: neuer Abschnitt „Was als Teilzusage zählt“; Programmgrundlage und Bestandszusagen auch für Baden-Württemberg.
+- Startseite und Länderseite zeigen die Werte für Baden-Württemberg; Daten-Downloads enthalten Bund und Baden-Württemberg.
+- Das Programm, das die Seiten erzeugt, liegt jetzt mit seinen Eingabedaten im Repository (`tools/`).
+
 ## 2026-11-11
 
 - Korrektur: Die Zitierhilfe auf den Seiten der Parteien und der Vorhaben nannte eine Adresse ohne den Ordner `bund-21/`; der Link führte ins Leere.
