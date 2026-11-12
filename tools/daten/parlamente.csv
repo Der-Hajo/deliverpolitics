@@ -1,0 +1,7 @@
+parlament_id,ebene,name,langname,wahlperiode,wahltag,ende_wp,kurz,sortierung,status,naechste_wahl
+bund-21,Bund,Bund,Deutscher Bundestag,21,2025-02-23,2029-03,Bund,1,aktiv,2029-02-23
+baden-wuerttemberg-18,Land,Baden-Württemberg,Landtag von Baden-Württemberg,18,2026-03-08,2031-04,BW,10,aktiv,2031-03-08
+rheinland-pfalz-19,Land,Rheinland-Pfalz,Landtag Rheinland-Pfalz,19,2026-03-22,,RP,11,in Vorbereitung,
+sachsen-anhalt-9,Land,Sachsen-Anhalt,Landtag von Sachsen-Anhalt,9,2026-09-06,,ST,12,in Vorbereitung,
+berlin-20,Land,Berlin,Abgeordnetenhaus von Berlin,20,2026-09-20,,BE,13,in Vorbereitung,
+mecklenburg-vorpommern-9,Land,Mecklenburg-Vorpommern,Landtag Mecklenburg-Vorpommern,9,2026-09-20,,MV,14,in Vorbereitung,
