@@ -30,7 +30,7 @@ def setze(P):
     IDX = {r["kuerzel"]: dict(index_id=r["index_id"], name=r["name"], slug=r["slug"], prog=r["prog"], url=r["url"], url_label=r["url_label"], pdf=r["pdf"], basis=r["basis"])
            for r in INDIZES if r["parlament"] == PDIR and not r["index_id"].endswith("-KERN")}
     KERN = any(r["parlament"] == PDIR and r["index_id"].endswith("-KERN") for r in INDIZES)  # gibt es den Index Kernversprechen (E36)?
-    PARLSEITEN = {"index.html", "kernversprechen.html", "gesamtprogramm.html", "aenderungen.html"} | {c["slug"] + ".html" for c in IDX.values()}
+    PARLSEITEN = {"index.html", "kernversprechen.html", "gesamtprogramm.html", "themen.html", "aenderungen.html"} | {c["slug"] + ".html" for c in IDX.values()}
     WAHLTAG = P["wahltag"]
     NAECHSTE_WAHL = P["naechste_wahl"]  # voraussichtlich; Bund: frühestens 46, spätestens 48 Monate nach Beginn der Wahlperiode (Art. 39 GG)
     ENDE_WP = P["ende_wp"]              # voraussichtliches Ende der Wahlperiode (JJJJ-MM), Ende der Zeitachse
@@ -117,6 +117,24 @@ def proglink(cfg, rel="", satz=False):
     t = f'<a href="{e(cfg["url"])}" rel="noopener">{e(cfg["prog"])}</a>' if cfg["url"] else e(cfg["prog"])
     return t + f' <span style="white-space:nowrap">(<a href="{rel}{cfg["pdf"]}">Kopie als PDF</a>)</span>'
 
+# Flaggen nur für veröffentlichte Parlamente (Entscheidung 12.11.2026); jedes weitere Land bekommt seine Flagge bei Veröffentlichung.
+FLAGGEN = {"bund-21": ("Bundesflagge", ["#000000", "#DD0000", "#FFCE00"]),
+           "baden-wuerttemberg-18": ("Landesflagge Baden-Württemberg", ["#000000", "#FFCE00"])}
+def flagge(pid, kl=""):
+    """Flagge als waagerechte Streifen (ohne Bilddatei); leer, wenn für das Parlament keine hinterlegt ist."""
+    if pid not in FLAGGEN: return ""
+    lab, farben = FLAGGEN[pid]
+    return (f'<span class="flagge{" " + kl if kl else ""}" role="img" aria-label="{e(lab)}">'
+            + "".join(f'<span style="background:{f}"></span>' for f in farben) + '</span>')
+def _icon(pfade, g=28, sw=1.6):
+    return f'<svg width="{g}" height="{g}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{sw}" aria-hidden="true">{pfade}</svg>'
+I_BUND = '<path d="M3 21h18"></path><path d="M5 21V10"></path><path d="M9.5 21V10"></path><path d="M14.5 21V10"></path><path d="M19 21V10"></path><path d="M3 10h18"></path><path d="M12 3l9 5H3z"></path>'
+I_LAND = '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0113 0c0 5.4-6.5 11-6.5 11z"></path><circle cx="12" cy="10" r="2.5"></circle>'
+I_ZERLEGEN = '<rect x="4" y="3" width="16" height="18"></rect><line x1="8" y1="8" x2="16" y2="8"></line><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="13" y2="16"></line>'
+I_PRUEFEN = '<path d="M12 3v18"></path><path d="M5 7h14"></path><path d="M5 7l-3 7h6z"></path><path d="M19 7l-3 7h6z"></path>'
+I_ZAEHLEN = '<path d="M4 20V10"></path><path d="M10 20V4"></path><path d="M16 20v-7"></path><path d="M2 20h20"></path>'
+THEMEN_DA = False  # wird in lauf() gesetzt: gibt es für das Parlament Themen (themen_cap.csv)?
+
 def meter(v, w=72):
     """Balken für den Anteil erfüllter Teilzusagen; v = None für ausgeschlossene Kapitel."""
     if v is None:
@@ -124,7 +142,7 @@ def meter(v, w=72):
     return f'<span class="bar" style="width:{w}px" aria-hidden="true"><span style="width:{round(100 * float(v))}%"></span></span>'
 
 CSS = """
-:root{--bg:#F6F7F7;--ink:#16191C;--ink2:#39424A;--mut:#5F6A72;--line:#DEE3E6;--line2:#BFC9CE;--card:#FFFFFF;--acc:#2F5D62;--ok:#28695E;--be:#875C08;--br:#B0362A;--no:#AAB4BA}
+:root{--bg:#F6F7F7;--ink:#16191C;--ink2:#39424A;--mut:#5F6A72;--line:#DEE3E6;--line2:#BFC9CE;--card:#FFFFFF;--acc:#2F5D62;--acc2:#1F4F47;--ok:#28695E;--be:#875C08;--br:#B0362A;--no:#AAB4BA;--soft:#E9EDEF;--landbg:#E4EEEC}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
 a{color:var(--acc);text-underline-offset:3px}a:hover{color:var(--ink)}
@@ -134,16 +152,19 @@ a:focus-visible,summary:focus-visible,.btn:focus-visible,label:focus-visible{out
 .id{font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;font-size:12.5px;letter-spacing:0}
 .serif{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif}
 .label{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
-.beta{background:var(--ink);color:var(--bg);font-size:13px}
-.beta div{max-width:1080px;margin:0 auto;padding:7px 24px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
-.beta a{color:var(--bg)}
-.beta .tag{font-size:11px;font-weight:600;letter-spacing:.1em;border:1px solid var(--bg);padding:2px 8px}
-.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
-header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 32px;padding:22px 0 14px;border-bottom:2px solid var(--ink)}
-.brand{color:var(--ink);text-decoration:none;font-weight:600;font-size:20px;letter-spacing:.02em}
-nav.main{display:flex;flex-wrap:wrap;gap:4px 24px}
-nav.main a{color:var(--ink2);text-decoration:none;font-size:15px;padding:12px 0;border-bottom:1px solid transparent}
-nav.main a:hover,nav.main a[aria-current]{color:var(--ink);border-bottom-color:var(--ink)}
+.beta{background:var(--ink);color:#fff;font-size:14px}
+.beta div{max-width:1180px;margin:0 auto;padding:10px 24px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:center}
+.beta a{color:#fff}
+.beta .tag{font-size:12px;font-weight:600;letter-spacing:.06em;border:1px solid #fff;padding:2px 8px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+main.wrap{padding-bottom:64px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px;padding:28px 0 20px;border-bottom:3px solid var(--ink)}
+header.top.ohne{border-bottom:0}
+.brand{color:var(--ink);text-decoration:none;font-weight:700;font-size:26px;letter-spacing:.04em}
+nav.main{display:flex;flex-wrap:wrap;gap:4px 28px}
+nav.main a{color:var(--ink);text-decoration:none;font-size:17px;padding:8px 0 4px;border-bottom:3px solid transparent}
+nav.main a:hover{border-bottom-color:var(--line2)}
+nav.main a[aria-current]{font-weight:700;border-bottom-color:var(--ink)}
 .crumb{font-size:12.5px;color:var(--mut);padding:18px 0 0;display:flex;gap:8px;flex-wrap:wrap}
 .crumb a{color:var(--mut)}
 h1{font-weight:600;margin:0}
@@ -188,8 +209,12 @@ h2{font-weight:600;margin:0}
 .auf{margin-top:12px;border-top:1px solid var(--line)}.auf>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;padding:14px 0;font-size:15.5px;color:var(--acc)}.auf>summary::-webkit-details-marker{display:none}
 .auf .pm{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:1px solid var(--acc);border-radius:3px;font-weight:600;flex:none}.auf .pm::before{content:"+"}.auf[open] .pm::before{content:"−"}
 .auf>summary:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.subnav{display:flex;flex-wrap:wrap;align-items:center;gap:6px 22px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14.5px}
-.subnav .subtitel{font-weight:600;color:var(--ink);margin-right:6px}.subnav a{color:var(--ink2);text-decoration:none;padding:2px 0}.subnav a[aria-current]{color:var(--ink);border-bottom:2px solid var(--ink)}.subnav a:hover{color:var(--ink)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;font-size:16px}
+.tabs a{padding:12px 16px;color:var(--ink2);text-decoration:none;border-bottom:4px solid transparent}
+.tabs a:hover{color:var(--ink);border-bottom-color:var(--line2)}
+.tabs a[aria-current]{color:var(--ink);font-weight:700;border-bottom-color:var(--ink)}
+.subw{display:flex;flex-wrap:wrap;align-items:center;gap:0 20px;border-bottom:1px solid var(--line);padding-top:6px}
+.subw .subtitel{font-weight:600;font-size:15px;color:var(--ink)}
 .spotgrid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:28px;align-items:start}
 .spotbild img{width:100%;height:auto;display:block;border:1px solid var(--line)}
 .mz{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:15px}
@@ -268,11 +293,137 @@ a.brlink{color:var(--br)}
 .prose details.dec summary .id{min-width:42px;color:var(--mut)}
 .prose .decbody{padding:0 4px 14px 60px}
 .prose h3{font-size:17px;color:var(--ink);margin:24px 0 6px}
-footer.foot{margin-top:64px;padding:22px 0 40px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between;font-size:13.5px;color:var(--mut)}
-footer.foot a{color:var(--mut)}
+footer.foot{border-top:1px solid var(--line);padding:24px;text-align:center;font-size:14px;color:var(--mut);line-height:1.9}
+footer.foot a{color:var(--acc)}
+/* ---- Erscheinungsbild 11/2026: Startseite und Parlamentsübersichten ---- */
+.band{background:var(--card);border-top:8px solid var(--ink);border-bottom:1px solid var(--line)}
+.band.land{background:var(--landbg);border-top-color:var(--acc);border-bottom:0}
+.band.land.kopf{background:var(--card);border-bottom:1px solid var(--line)}
+.bandin{max-width:1180px;margin:0 auto;padding:40px 24px 56px;display:flex;flex-direction:column;gap:28px}
+.band.kopf .bandin{padding:28px 24px 0;gap:24px}
+.pfad{font-size:14px;color:var(--mut);display:flex;gap:8px;flex-wrap:wrap}
+.pkopf{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px}
+.pk1{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ebene{align-self:flex-start;background:var(--ink);color:#fff;font-size:13px;font-weight:700;letter-spacing:.1em;padding:4px 10px}
+.ebene.land{background:#fff;color:var(--acc2);border:1.5px solid var(--acc);padding:3px 9px}
+.ptit{display:flex;align-items:center;gap:16px}.ptit svg{color:var(--acc);flex:none}
+.ptit h1,.ptit h2,.ptit h3{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;font-weight:700;margin:0;line-height:1.05}
+.ptit h1{font-size:56px}.ptit h2{font-size:44px}.ptit h3{font-size:30px}
+.pmeta{font-size:16px;color:var(--ink2)}.lkopf .pmeta{font-size:15px}
+.flagge{display:flex;flex-direction:column;width:60px;height:40px;border:1px solid var(--line2);box-sizing:content-box;flex:none}
+.flagge span{display:block;flex:1}.flagge.kl{width:48px;height:32px}.flagge.gr{width:66px;height:44px}
+.wpz{display:flex;flex-direction:column;gap:6px;min-width:260px;font-size:14px;color:var(--ink2)}
+.wpb{display:flex;height:8px;background:var(--soft)}.wpb span{display:block;background:var(--ink)}.wpb.land span{background:var(--acc)}
+.h26,.h28,.h34{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;font-weight:700;margin:0;line-height:1.2}
+.h26{font-size:26px}.h28{font-size:28px}.h34{font-size:34px}
+.sub{font-size:14px;color:var(--mut)}.sub15{font-size:15px;color:var(--mut)}
+.pbox{border:1px solid var(--line)}
+.prow{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;padding:22px 24px;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none}
+.prow:hover{background:#FAFBFB;color:var(--ink)}.prow:hover .pn{text-decoration:underline}
+.prow .pn{font-family:Georgia,serif;font-size:26px;font-weight:700;flex:0 0 130px}
+.prow .pb{flex:1 1 380px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.pbz{display:flex;flex-direction:column;gap:5px}
+.pbl{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--mut)}.pbl>span:last-child{white-space:nowrap}
+.stk{display:flex;height:18px;background:var(--soft)}.stk span{display:block}.stk.h8{height:8px}.stk.h10{height:10px}.stk.h20{height:20px}
+.stk .ok,.vb .ok,.tb .ok,.leg i.ok,.kach i.ok{background:var(--ok)}.stk .be,.vb .be,.leg i.be,.kach i.be{background:var(--be)}.stk .br,.vb .br,.leg i.br,.kach i.br{background:var(--br)}
+.prow .pp{font-family:Georgia,serif;font-size:52px;line-height:1;flex:0 0 120px;text-align:right}
+.prow .ps{display:flex;flex-direction:column;gap:4px;align-items:flex-end;font-size:13px;color:var(--ink2)}
+.leg{display:flex;gap:8px 20px;flex-wrap:wrap;padding:12px 24px;font-size:14px;color:var(--ink2)}
+.leg span{display:inline-flex;align-items:center;gap:6px}.leg i{width:12px;height:12px;display:inline-block;flex:none}
+.leg i.of{background:var(--soft);border:1px solid var(--line2)}.leg i.of2{background:#DCE3E6}.leg .kurve{color:var(--mut)}
+.duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:40px}
+.spalte{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tliste{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.trow{display:grid;grid-template-columns:minmax(120px,240px) minmax(0,1fr) 56px;gap:12px;align-items:center;padding:6px 0;color:var(--ink);text-decoration:none;font-size:15px}
+.trow:hover{color:var(--ink)}.trow:hover>span:first-child{text-decoration:underline}
+.tb{display:flex;height:14px}.tb span{display:block}.tb .rest{background:#C9D8D5}
+.tpz{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.mehr{font-weight:600}
+.tl{display:flex;flex-direction:column;margin-top:6px;border-left:2px solid var(--ink)}.tl.land{border-left-color:var(--acc)}.tl.be{border-left-color:var(--be)}
+.tli{display:flex;gap:16px;padding:11px 0 11px 20px;color:var(--ink);text-decoration:none;position:relative}
+.tli::before{content:"";position:absolute;left:-9px;top:17px;width:12px;height:12px;border-radius:50%;background:var(--ok);border:2px solid var(--tlbg,#fff);box-sizing:content-box}
+.tl.be .tli::before{background:var(--be)}.tli.br::before{background:var(--br)}
+.tli:hover{color:var(--ink)}.tli:hover .tlt>span:first-child{text-decoration:underline}
+.tld{font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;font-size:14px;color:var(--mut);min-width:52px;padding-top:2px;flex:none}.tld.lang{min-width:84px}
+.tlt{display:flex;flex-direction:column;gap:3px;font-size:16px;line-height:1.35;min-width:0}.tlw{font-size:13px;color:var(--mut)}
+.knopf{align-self:flex-start;background:var(--ink);color:#fff;padding:12px 20px;text-decoration:none;font-weight:600;min-height:44px;display:inline-flex;align-items:center}
+.knopf:hover{color:#fff;background:#000}.knopf.land{background:var(--acc)}.knopf.land:hover{background:var(--acc2)}
+.hero2{padding:52px 0 28px;display:flex;flex-direction:column;gap:16px;max-width:800px}
+.hero2 h1{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;font-size:64px;line-height:1.02;font-weight:700}
+.hero2 p{margin:0;font-size:20px;line-height:1.5;color:var(--ink2)}.hero2 a{font-weight:600;font-size:17px}
+.ecards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:16px;padding-bottom:20px}
+.ecard{background:var(--ink);color:#fff;padding:24px 28px;display:flex;flex-direction:column;gap:10px;text-decoration:none}
+.ecard:hover{color:#fff;background:#000}
+.ecard .ek{display:flex;align-items:center;gap:10px}.ecard .ekt{font-size:13px;letter-spacing:.1em;font-weight:700}
+.ecard .ef{margin-left:auto;display:flex;gap:6px}.ecard .flagge{border-color:#fff}
+.ecard .et{font-family:Georgia,serif;font-size:30px;font-weight:700}.ecard .es{font-size:16px;color:#DEE3E6}.ecard .ew{font-weight:600}
+.ecard.land{background:var(--landbg);color:var(--ink);border:2px solid var(--acc);padding:22px 26px}.ecard.land:hover{color:var(--ink);background:#D9E7E4}
+.ecard.land .ekt,.ecard.land .ew{color:var(--acc2)}.ecard.land .es{color:var(--ink2)}.ecard.land .flagge{border-color:var(--mut)}.ecard.land svg{color:var(--acc)}
+.neu{background:#fff;border:1px solid var(--line);padding:16px 24px;display:flex;gap:12px 28px;flex-wrap:wrap;align-items:center;margin-bottom:56px;font-size:16px}
+.neu .nl{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.neu .nz{display:flex;align-items:center;gap:8px}.neu .mehr{margin-left:auto}
+.marke{background:var(--ink);color:#fff;font-size:12px;font-weight:700;letter-spacing:.06em;padding:3px 8px}
+.marke.land{background:#fff;color:var(--acc2);border:1.5px solid var(--acc);padding:2px 7px}
+.lzahl{display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--ink2)}
+.lseg{display:flex;gap:6px}.lseg span{width:34px;height:12px;display:block;box-sizing:border-box;border:1.5px dashed var(--mut)}.lseg .an{background:var(--acc);border:0}
+.lart{background:#fff;border:2px solid var(--acc)}
+.lkopf{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;padding:22px 24px;border-bottom:1px solid var(--line)}
+.lkopf .pk1{gap:6px}.lkopf .ptit{gap:14px}
+.lart .prow{padding:20px 24px}.lart .leg{border-bottom:1px solid var(--line)}.lart .duo{padding:28px 24px}.lfuss{padding:0 24px 24px;display:flex}
+.vorb{display:flex;flex-direction:column;gap:12px}
+.vtit{margin:0;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);font-weight:700}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr));gap:12px}
+.vk{background:var(--bg);border:1.5px dashed var(--mut);padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.vk b{font-family:Georgia,serif;font-size:20px;color:var(--ink2)}.vk span{font-size:14px;color:var(--ink2)}
+.soz{padding:56px 0 64px;display:flex;flex-direction:column;gap:16px}.soz>span{font-size:16px;color:var(--ink2)}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:16px}
+.sk{background:#fff;border:1px solid var(--line);padding:24px;display:flex;flex-direction:column;gap:10px}
+.sk svg{color:var(--acc)}.sk b{font-family:Georgia,serif;font-size:22px}.sk span{color:var(--ink2);line-height:1.5}
+.pcards{padding:40px 0 8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:20px}
+.pcard{background:#fff;border:1px solid var(--line);padding:28px;display:flex;flex-direction:column;gap:18px}
+.pc1{display:flex;justify-content:space-between;align-items:baseline;gap:6px 12px;flex-wrap:wrap}
+.pc1 h2{font-family:Georgia,serif;font-size:32px;font-weight:700}.pc1 span{font-size:14px;color:var(--ink2)}
+.pc2{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}.pc2 .pz{font-family:Georgia,serif;font-size:76px;line-height:.95}.pc2 .pv{font-size:16px;color:var(--ink2)}
+.kach{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.kach a{border:1px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:4px;color:var(--ink);text-decoration:none;min-height:44px}
+.kach a:hover{border-color:var(--ink)}
+.kach .kl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2)}.kach i{width:10px;height:10px;display:inline-block;flex:none}.kach i.of{background:var(--line2)}
+.kach .kn{font-family:Georgia,serif;font-size:26px}
+@media (max-width:520px){.kach{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pkern{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:16px}
+.pkern .pbl{font-size:14px;color:var(--ink2);flex-wrap:wrap}.pkern strong{color:var(--ink)}
+.abs{padding:48px 0 8px;display:flex;flex-direction:column;gap:12px;position:relative}.abs.ende{padding-bottom:64px}
+.cbox{background:#fff;border:1px solid var(--line);padding:24px;overflow-x:auto}.cbox svg{width:100%;min-width:860px;height:auto;display:block}
+.vvk{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px}.vvk>div:first-child{display:flex;flex-direction:column;gap:6px}
+.vvw{display:flex;gap:12px 20px;flex-wrap:wrap}.seg{display:flex}
+.seg label{min-height:44px;padding:0 16px;font-size:15px;cursor:pointer;border:1px solid var(--ink);background:#fff;color:var(--ink);display:inline-flex;align-items:center}.seg label+label{border-left:0}
+.vvbox{background:#fff;border:1px solid var(--line)}
+.vvl{display:none;flex-direction:column}
+#vp-0:checked~.vvbox .vp-0,#vp-1:checked~.vvbox .vp-1,#vp-2:checked~.vvbox .vp-2,#vp-3:checked~.vvbox .vp-3{display:flex}
+#vp-0:checked~.vvk label[for=vp-0],#vp-1:checked~.vvk label[for=vp-1],#vp-2:checked~.vvk label[for=vp-2],#vp-3:checked~.vvk label[for=vp-3],#vs-p:checked~.vvk label[for=vs-p],#vs-g:checked~.vvk label[for=vs-g]{background:var(--ink);color:#fff}
+#vp-0:focus-visible~.vvk label[for=vp-0],#vp-1:focus-visible~.vvk label[for=vp-1],#vp-2:focus-visible~.vvk label[for=vp-2],#vp-3:focus-visible~.vvk label[for=vp-3],#vs-p:focus-visible~.vvk label[for=vs-p],#vs-g:focus-visible~.vvk label[for=vs-g]{outline:2px solid var(--acc);outline-offset:2px}
+#vs-g:checked~.vvbox .vvl>.vrow{order:var(--o)}
+.vrow{display:grid;grid-template-columns:minmax(200px,320px) minmax(120px,1fr) 96px 20px;gap:16px;align-items:center;padding:11px 20px;border-bottom:1px solid #EEF1F2;color:var(--ink);text-decoration:none;min-height:44px;font-size:16px}
+a.vrow:hover{background:#FAFBFB;color:var(--ink)}a.vrow:hover>span:first-child{text-decoration:underline}
+.vb{display:flex;height:14px}.vb span{display:block}.vb .of{background:#DCE3E6}
+.vz{text-align:right;font-size:14px;color:var(--ink2);font-variant-numeric:tabular-nums}.vp{color:var(--acc);font-weight:700}
+.vrow.aus{color:var(--mut)}.vrow.aus .vz{color:var(--mut)}
+.grau{--tlbg:var(--bg)}
 @media (max-width:640px){
- nav.main{gap:2px 16px}nav.main a{font-size:14px;padding:8px 0}
- .subnav{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:14px}.subnav .subtitel{grid-column:1/-1;margin:0 0 2px}
+ header.top{padding:18px 0 12px}.brand{font-size:21px}
+ nav.main{gap:2px 18px}nav.main a{font-size:15px;padding:8px 0 4px}
+ .tabs{font-size:15px}.tabs a{padding:10px 10px}.subw .subtitel{flex-basis:100%;padding-top:8px}
+ .bandin{padding:28px 16px 40px}.band.kopf .bandin{padding:20px 16px 0}
+ .ptit h1{font-size:40px}.ptit h2{font-size:34px}.ptit h3{font-size:25px}.ptit{gap:12px}
+ .hero2{padding:32px 0 20px}.hero2 h1{font-size:42px}.hero2 p{font-size:18px}
+ .wpz{min-width:0;width:100%}
+ .prow{padding:18px 16px}.lart .prow{padding:18px 16px}.prow .pn{flex:1 1 auto}.prow .pp{flex:0 0 auto;font-size:44px;order:-1;margin-left:auto}.prow .pn{order:-2}.prow .ps{display:none}
+ .leg{padding:12px 16px}.lkopf{padding:18px 16px}.lart .duo{padding:24px 16px}.lfuss{padding:0 16px 20px}
+ .trow{grid-template-columns:minmax(0,1fr) 48px;gap:4px 12px}.trow .tb{grid-column:1/-1;grid-row:2}
+ .neu{padding:14px 16px;margin-bottom:40px}.neu .mehr{margin-left:0}
+ .pcard{padding:20px}.pc2 .pz{font-size:60px}.abs h2{font-size:28px}.cbox{padding:14px}
+ .vrow{grid-template-columns:minmax(0,1fr) 76px 12px;gap:6px 12px;padding:11px 14px}.vrow .vb{grid-column:1/-1;grid-row:2}
+ .seg label{padding:0 12px;font-size:14px}
  .big.xl{font-size:56px!important}
  h1.hero{font-size:40px!important}
  .tz{grid-template-columns:40px minmax(0,1fr)}
@@ -317,7 +468,9 @@ def sanduhr(stichtag_iso, w=96, h=160):
            + '</svg>')
     return svg, mon, ges, p
 
-def page(title, body, rel="", cur="", og=None, ogalt=None, pub=None):
+def page(title, body, rel="", cur="", og=None, ogalt=None, pub=None, frei=False):
+    # frei=True: Seite im neuen Erscheinungsbild mit Bändern über die ganze Breite; der Inhalt bringt seine .wrap-Bereiche selbst mit.
+    # Die Reiter des Parlaments stehen dort im Kopfband (Platzhalter @@TABS@@), sonst unter der Hauptnavigation.
     # Dateinamen hier im flachen Erzeugungs-Layout; LAYOUT (unten) verschiebt sie an ihre endgültigen Adressen
     parl = cur in PARLSEITEN or cur == "vorhaben"
     top = [("_aktuell.html", "Aktuell", cur in ("_aktuell.html", "befunde.html")), ("index.html" if HAUPT else HP["parlament_id"] + "/index.html", HP["name"], parl and HAUPT)]
@@ -326,11 +479,15 @@ def page(title, body, rel="", cur="", og=None, ogalt=None, pub=None):
     navh = "".join(f'<a href="{rel}{h}"{" aria-current=\"page\"" if an else ""}>{t}</a>' for h, t, an in top)
     sub = ""
     if parl:
-        sl = [("index.html", "Übersicht"), ("gesamtprogramm.html", "Gesamtprogramm"), ("kernversprechen.html", "Kernversprechen"), ("aenderungen.html", "Updates")]
+        sl = [("index.html", "Übersicht"), ("gesamtprogramm.html", "Gesamtprogramm"), ("kernversprechen.html", "Kernversprechen"), ("themen.html", "Themen"), ("aenderungen.html", "Updates")]
         if not KERN: sl = [x for x in sl if x[0] != "kernversprechen.html"]
+        if not THEMEN_DA: sl = [x for x in sl if x[0] != "themen.html"]
         akt = "gesamtprogramm.html" if (cur == "vorhaben" or cur in {c["slug"] + ".html" for c in IDX.values()}) else cur
-        sub = (f'<nav class="subnav" aria-label="{e(PARL["name"])}"><span class="subtitel">{e(PARL["name"])} · {PARL["wahlperiode"]}. Wahlperiode</span>'
-               + "".join(f'<a href="{rel}{h}"{" aria-current=\"page\"" if h == akt else ""}>{t}</a>' for h, t in sl) + '</nav>')
+        tabs = (f'<nav class="tabs" aria-label="Bereiche {e(PARL["name"])}">'
+                + "".join(f'<a href="{rel}{h}"{" aria-current=\"page\"" if h == akt else ""}>{t}</a>' for h, t in sl) + '</nav>')
+        if "@@TABS@@" in body: body = body.replace("@@TABS@@", tabs)
+        else: sub = f'<div class="wrap"><div class="subw"><span class="subtitel">{e(PARL["name"])} · {PARL["wahlperiode"]}. Wahlperiode</span>{tabs}</div></div>'
+    ohne = frei and cur != "_aktuell.html"  # Kopfband folgt direkt: keine Linie unter der Hauptnavigation
     return f"""<!doctype html>
 <html lang="de">
 <head>
@@ -360,14 +517,12 @@ def page(title, body, rel="", cur="", og=None, ogalt=None, pub=None):
 <body>
 <a class="skip" href="#inhalt">Zum Inhalt springen</a>
 <div class="beta"><div><span class="tag">BETA</span><span>Methodik in Erprobung</span><a href="{rel}ueber.html#feedback">Feedback geben</a></div></div>
-<div class="wrap">
-<header class="top"><a href="{rel}_aktuell.html" class="brand serif">DELIVERPOLITICS</a><nav class="main" aria-label="Hauptnavigation">{navh}</nav></header>
+<div class="wrap"><header class="top{" ohne" if ohne else ""}"><a href="{rel}_aktuell.html" class="brand serif">DELIVERPOLITICS</a><nav class="main" aria-label="Hauptnavigation">{navh}</nav></header></div>
 {sub}
-<main id="inhalt">
+<main id="inhalt"{"" if frei else ' class="wrap"'}>
 {body}
 </main>
-<footer class="foot"><span>Unabhängig · werbefrei · <a href="{rel}ueber.html#offenlegung">Offenlegung</a> · <a href="{rel}ueber.html#ki">Erstellt mit Unterstützung von KI</a></span><span style="display:flex;flex-wrap:wrap;gap:8px 20px"><a href="{rel}befunde.html">Alle Spotlights</a><a href="{rel}daten.html">Daten (CSV)</a><a href="{rel}impressum.html">Impressum</a><a href="{rel}datenschutz.html">Datenschutz</a></span></footer>
-</div>
+<footer class="foot">Unabhängig · werbefrei · <a href="{rel}ueber.html#offenlegung">Offenlegung</a> · <a href="{rel}ueber.html#ki">Erstellt mit Unterstützung von KI</a> · <a href="{rel}befunde.html">Alle Spotlights</a> · <a href="{rel}daten.html">Daten (CSV)</a> · <a href="{rel}impressum.html">Impressum</a> · <a href="{rel}datenschutz.html">Datenschutz</a></footer>
 </body>
 </html>
 """
@@ -517,6 +672,22 @@ def lauf(MONTH, OUT, EXTERN):
     items = [i for i in items if i["index_id"] in ixids]; iset = {i["item_id"] for i in items}
     tzs = [t for t in tzs if t["item_id"] in iset]
     kh = {k: v for k, v in kh.items() if k[0] in ixids or (k[0].endswith("-KERN") and k[0][:-5] in ixids)}
+    # Prüfung (Befund 12.11.2026, CDU-09-T17): Die Spalte „bewertung“ und der aus Typ, Daten und Frist berechnete Status müssen übereinstimmen.
+    # Geprüft wird der aktuelle Stand (letzter Monat in kpi_history.csv); frühere Stände lassen sich weiterhin nachbauen.
+    if MONTH == max(m for (_, m) in kh):
+        def bkl(b):
+            if b.startswith("erfüllt"): return "ok"
+            if b.startswith("beschlossen"): return "be"
+            if b.startswith("gebrochen") or "Frist verfehlt" in b: return "br"
+            if b.startswith("nicht erfüllt"): return ""
+            return "?"
+        ab = [f'  {t["tz_id"]}: bewertung „{t["bewertung"]}“, berechnet „{status(t, ST)[0]}“' for t in tzs if bkl(t["bewertung"]) != status(t, ST)[1]]
+        if ab:
+            raise SystemExit(f"Abbruch – in teilzusagen.csv weichen bewertung und berechneter Status voneinander ab ({PDIR}, Stand {STD}):\n" + "\n".join(ab)
+                             + "\nBitte typ_zusage, erfuellt_ab, entfallen_ab, frist oder bewertung berichtigen.")
+    global THEMEN_DA
+    _pcap = os.path.join(D, "themen_cap.csv")
+    THEMEN_DA = os.path.exists(_pcap) and bool({r["tz_id"] for r in csv.DictReader(open(_pcap, encoding="utf-8"))} & {t["tz_id"] for t in tzs})
     KERNSET = {k["tz_id"] for k in csv.DictReader(open(os.path.join(D, "kernversprechen.csv"), encoding="utf-8"))}
     def kmark(tid): return '<span class="typ kern" title="Kernversprechen">Kern</span>' if tid in KERNSET else ""
     # Einheitlicher Statusbalken (Nr. 34): höchstens vier Abschnitte (erfüllt, beschlossen, offen, gebrochen);
@@ -759,10 +930,6 @@ def lauf(MONTH, OUT, EXTERN):
 <div class="mono" style="position:relative;height:16px;font-size:11px;color:var(--mut);margin-top:6px">{ticks}</div></div></div>{notiz}</div>"""
     G_IDS = {q: IDX[q]["index_id"] for q in IDX}; K_IDS = {q: IDX[q]["index_id"] + "-KERN" for q in IDX}
     G_W = {q: (stat[q]["start"], stat[q]["kpi"], stat[q]["rund"]) for q in IDX}
-    chart = f"""<section style="margin-top:64px"><h2 class="serif" style="font-size:26px">Verlauf in der Wahlperiode</h2>
-<div class="grid2" style="margin-top:18px">{verlauf("Gesamtprogramm", G_IDS, G_W)}@@KVERLAUF@@</div>
-<p class="note" style="margin:12px 0 0">Monatswerte seit der Wahl; die Achse reicht bis zum voraussichtlichen Ende der Wahlperiode ({MONL[int(ENDE_WP[5:]) - 1]} {ENDE_WP[:4]}).</p></section>"""
-
     # ---------- Änderungen
     allc = sorted([c for m in changes for c in changes[m]], reverse=True)
     secs = []
@@ -789,6 +956,7 @@ def lauf(MONTH, OUT, EXTERN):
 """
     KORR = """<section id="korrekturen" class="plain" style="margin-top:48px;max-width:76ch"><h2 class="serif" style="font-size:24px;margin-bottom:8px">Korrekturen</h2>
 <p style="font-size:15px;color:var(--ink2);margin:0">Die Werte bis September 2026 sind rückwirkend berechnet, ab Oktober 2026 werden sie monatlich festgestellt. Korrekturen und Änderungen der Methodik erscheinen hier mit Datum und Begründung.</p>
+<div class="ch" style="grid-template-columns:110px minmax(0,1fr);margin-top:12px"><span class="mono" style="font-size:13px;color:var(--mut)">13.11.2026</span><span><b>Korrektur:</b> Die Zusage CDU-09 T17 („keine Entlassung von Beamten und Soldaten durch Verwaltungsakt ohne richterlichen Beschluss“) war als erfüllte Bestandszusage gezählt, obwohl sie als nicht erfüllt bewertet ist. Oktober 2026 korrigiert: CDU/CSU 30,1 → 29,9 % (100 statt 101 von 335 Zusagen), Werte rückwirkend ab Februar 2025. SPD und Kernversprechen unverändert.</span></div>
 <div class="ch" style="grid-template-columns:110px minmax(0,1fr);margin-top:12px"><span class="mono" style="font-size:13px;color:var(--mut)">08.11.2026</span><span><b>Methodik:</b> Zusagen zählen jetzt unabhängig davon, ob EU, Bund oder Länder sie beschließen müssen; erfüllt, wenn der Rechtsakt gilt (<a href="methodik.html#e40">E40</a>). Bisher zählten Maßnahmen, die nur die EU beschließen kann, nicht (<a href="methodik.html#e27">E27</a>). Dadurch kommen 17 Teilzusagen hinzu (CDU/CSU 11, SPD 6), Werte rückwirkend ab Februar 2025. Oktober 2026 korrigiert: CDU/CSU 28,4 → 30,1 %, SPD 36,9 → 37,4 %. Kernversprechen unverändert.</span></div>
 <div class="ch" style="grid-template-columns:110px minmax(0,1fr);margin-top:12px"><span class="mono" style="font-size:13px;color:var(--mut)">21.10.2026</span><span><b>Methodik:</b> zweiter Index <a href="kernversprechen.html">Kernversprechen</a> eingeführt (<a href="methodik.html#e36">E36</a>), Werte rückwirkend ab Februar 2025. Die Werte des Gesamtprogramms ändern sich dadurch nicht.</span></div></section>"""
     open(os.path.join(OUT, "aenderungen.html"), "w", encoding="utf-8").write(page(f"Updates {PARL['name']}", body, "", "aenderungen.html"))
@@ -847,31 +1015,6 @@ def lauf(MONTH, OUT, EXTERN):
         cfg, c = IDX[q], KS[q]["c"]
         return (zlink(c["be"], "beschlossen", f'kernversprechen.html#{cfg["slug"]}-beschlossen') + " · "
                 + zlink(c["br"], "gebrochen oder Frist verfehlt", f'kernversprechen.html#{cfg["slug"]}-gebrochen', "brlink") + extra)
-    def bilanzkarte(q):
-        cfg, s, k = IDX[q], stat[q], KS[q]
-        kernlink = f"""<a href="kernversprechen.html#{cfg['slug']}">Kernversprechen {e(cfg['name'])} →</a>""" if KERN else ""
-        kernblock = f"""<div class="bz"><div class="bkopf"><span class="label">Kernversprechen <span class="lsub">· von der Partei selbst herausgestellt · <a href="kernversprechen.html">was zählt?</a></span></span><span class="big" style="font-size:36px">{k['rund']} %</span><span class="bsub">{zlink(k['k'], f"von {k['n']} Kernversprechen erfüllt", f"kernversprechen.html#{cfg['slug']}-erfuellt")}</span></div>
-{kernbalken(q)}<div class="bnote">{knote(q, '<span class="hovtip"> · auf einen Abschnitt zeigen für die Versprechen</span>')}</div>{f'<div class="bnote">Bei {k["n"]} Kernversprechen verändert jedes den Wert um {pct(100 / k["n"]).replace(",0", "")} Punkte.</div>' if k["n"] < 20 else ""}
-<details class="kvl"><summary>Alle {k['n']} Kernversprechen als Liste</summary><ul>{kernliste(q)}</ul></details></div>
-""" if KERN else ""
-        return f"""<div class="card bil"><div class="serif" style="font-size:26px;font-weight:600">{e(cfg['name'])}</div>
-<div class="bz"><div class="bkopf"><span class="label">Gesamtprogramm <span class="lsub">· alle Zusagen des Wahlprogramms</span></span><span class="big xl" style="font-size:60px">{s['rund']} %</span><span class="bsub"><a href="{cfg['slug']}.html#erfuellt">{s['k']} von {s['n']} Zusagen erfüllt</a></span></div>
-{gbalken(zrows(s['tl']))}<div class="bnote">{gnote(q, '<span class="hovtip"> · auf einen Abschnitt zeigen für die Zusagen</span>')}</div></div>
-{kernblock}<div style="display:flex;flex-wrap:wrap;gap:6px 24px;margin-top:16px;font-size:14.5px"><a href="{cfg['slug']}.html">Gesamtprogramm {e(cfg['name'])} →</a>{kernlink}</div></div>"""
-    chart = chart.replace("@@KVERLAUF@@", verlauf("Kernversprechen", K_IDS, {q: (KS[q]["start"], KS[q]["kpi"], KS[q]["rund"]) for q in IDX}) if KERN else "")
-    s1, s2 = stat[ORD[0]], stat[ORD[1]]; n1, n2 = IDX[ORD[0]]["name"], IDX[ORD[1]]["name"]
-    hs, ls = sorted(ORD, key=lambda q: -stat[q]["start"]); sh, sl = stat[hs], stat[ls]
-    HERO = f"""<section style="padding:48px 0 8px"><h1 class="serif hero" style="font-size:60px;line-height:1.04;letter-spacing:-.015em;margin-bottom:16px">Versprochen. Gehalten?</h1>
-<p class="lead" style="font-size:18px">Wie viel haben die Parteien von ihrem Wahlprogramm umgesetzt? DeliverPolitics prüft jede Zusage gegen geltendes Recht – Zusage für Zusage, Monat für Monat.</p>
-<p style="font-size:15px;margin:10px 0 0"><a href="ueber.html#warum">Warum dieser Index? →</a></p></section>"""
-    BUNDBLOCK = f"""<div class="metaz"><span class="mono">{e(PARL['name'])} · {PARL['wahlperiode']}. Wahlperiode · Wahltag {de(WAHLTAG)} · Stand {STD}</span><span class="sandz">{SAND[0]}<span>{SAND[1]} von {SAND[2]} Monaten der Wahlperiode vergangen</span></span></div>
-<section style="margin-top:28px;display:flex;flex-direction:column;gap:20px">{''.join(bilanzkarte(q) for q in ORD)}</section>
-<div class="legz"><span><span class="kvd ok"></span>erfüllt</span><span><span class="kvd be"></span>beschlossen</span><span><span class="kvd of"></span>offen</span><span><span class="kvd br"></span>gebrochen oder Frist verfehlt</span></div>"""
-    SOENTSTEHT = f"""<section style="margin-top:64px"><h2 class="serif" style="font-size:26px;margin-bottom:18px">So entsteht die Zahl</h2>
-<div class="steps"><div><div class="label">1 · Zerlegen</div><p>Das Wahlprogramm wird in überprüfbare Zusagen zerlegt.</p></div>
-<div><div class="label">2 · Prüfen</div><p>Für jede Zusage steht vorab fest, wann sie erfüllt ist. Maßgeblich ist geltendes Recht.</p></div>
-<div><div class="label">3 · Zählen</div><p>Der Index ist der Anteil erfüllter Zusagen. Jede zählt gleich.</p></div></div>
-<p style="font-size:15px;margin-top:16px"><a href="methodik.html">So messen wir →</a></p></section>"""
     # ---------- Themen nach CAP-Codebuch (E38): je Thema ein Balken je Partei
     CAPNAME = {1: "Wirtschaftspolitik & Steuern", 2: "Bürgerrechte", 3: "Gesundheit", 4: "Landwirtschaft", 5: "Arbeit", 6: "Bildung", 7: "Umwelt & Klima", 8: "Energie",
                9: "Migration", 10: "Verkehr", 12: "Recht & Kriminalität", 13: "Soziales & Rente", 14: "Wohnen & Stadtentwicklung", 15: "Wirtschaft, Finanzmarkt & Sport",
@@ -899,111 +1042,233 @@ def lauf(MONTH, OUT, EXTERN):
                 c = tsum(weitere, q) if m == "w" else TP[(m, q)]; n = sum(c.values())
                 wert = (f'<span class="tw{" klein" if n < 5 else ""}"><b>{round(100 * c["ok"] / n)} %</b> {c["ok"]} von {n}</span>' if n else '<span class="tw klein">keine Zusage</span>')
                 zz += f'<div class="tp"><span class="tpn">{e(IDX[q]["name"])}</span>{gbalken(zrows([t for mm in (weitere if m == "w" else [m]) for t in TL[(mm, q)]]), 12)}{wert}</div>'
-            return f'<div class="tz2"><div class="tzn">{e(name)}</div><div>{zz}</div></div>'
-        THEMEN_HTML = f"""<section style="margin-top:64px" id="themen"><h2 class="serif" style="font-size:26px">Nach Themen</h2>
-<p class="note" style="margin-top:6px">Alle Zusagen des Gesamtprogramms, nach Themen des internationalen Codebuchs des Comparative Agendas Project; sortiert nach dem Anteil erfüllter Zusagen beider Parteien zusammen. Prozent = erfüllte Zusagen.</p>
+            return f'<div class="tz2" id="t{m}"><div class="tzn">{e(name)}</div><div>{zz}</div></div>'
+        THEMEN_HTML = f"""<section style="padding-top:40px" id="themen"><h1 class="serif" style="font-size:44px;margin-bottom:12px">Themen</h1>
+<p class="lead">Alle Zusagen des Gesamtprogramms, nach Themen des internationalen Codebuchs des Comparative Agendas Project; sortiert nach dem Anteil erfüllter Zusagen beider Parteien zusammen. Prozent = erfüllte Zusagen.</p>
 <div style="margin-top:14px;border-top:1px solid var(--line2)">{"".join(tzeile(m) for m in reihen)}</div>
 <p class="note" style="margin-top:10px">Weitere Themen: {", ".join(CAPNAME[m] for m in weitere)} (je unter 10 Zusagen). Nicht fett gesetzte Werte: unter 5 Zusagen, wenig aussagekräftig. Sport gehört im CAP-Codebuch zum Hauptthema „Wirtschaft, Finanzmarkt &amp; Sport“ (Domestic Commerce). Jede Zusage wurde zweifach unabhängig codiert (Übereinstimmung {CAP_UEB[PDIR]} %); die Themen ändern keinen Indexwert. <a href="methodik.html#e38">Regel E38 →</a></p></section>"""
+    # ---------- Bausteine des Erscheinungsbilds 11/2026 (Startseite, Länderseite, Übersicht des Parlaments)
+    mon_name = f"{MONL[int(MONTH[5:]) - 1]} {MONTH[:4]}"
+    BUND_E = PARL["ebene"] == "Bund"
+    IM, ZU = ("im Bund", "zum Bund") if BUND_E else (f"in {e(PARL['name'])}", f"zu {e(PARL['name'])}")
+    PTITEL = "Bundestag" if BUND_E else e(PARL["name"])
+    PMETA = ("" if BUND_E else e(PARL["langname"].split()[0]) + " · ") + f"{PARL['wahlperiode']}. Wahlperiode · Wahltag {de(WAHLTAG)} · Stand {STD}"
+    LKL = "" if BUND_E else " land"
+    WPZ = (f'<div class="wpz"><span>{SAND[1]} von {SAND[2]} Monaten der Wahlperiode vergangen</span>'
+           f'<span class="wpb{LKL}" aria-hidden="true"><span style="width:{100 * SAND[1] / SAND[2]:.1f}%"></span></span></div>')
+    REIHE = {q: [float(kh[(IDX[q]["index_id"], m)]["actual_exact"]) for m in months] for q in IDX}
+    YMAX = max(20, 10 * int(-(-(max(max(r) for r in REIHE.values()) + 1) // 10)))  # Obergrenze der Verlaufsachsen, auf volle 10 % gerundet
+    ERF = [c for c in allc if c[3] == "erfüllt"]          # durch Handeln erfüllt, neueste zuerst
+    NEU_MONAT = [c for c in ERF if c[0][:7] == MONTH]     # im Monat des Stands wirksam geworden
+    def delta(q):
+        d = stat[q]["kpi"] - stat[q]["start"]
+        return f"{'+' if d >= 0 else '−'}{pct(abs(d))} Punkte seit Wahltag"
+    def stk(c, n, kl="", nur_ok=False):
+        """Gestapelter Balken: erfüllt, beschlossen, gebrochen oder Frist verfehlt; der Rest ist offen. nur_ok: nur der erfüllte Anteil (Kernversprechen)."""
+        seg = "".join(f'<span class="{cl}" style="width:{100 * c[cl] / n:.2f}%"></span>' for cl in (("ok",) if nur_ok else ("ok", "be", "br")) if c[cl])
+        return f'<span class="stk{" " + kl if kl else ""}" aria-hidden="true">{seg}</span>'
+    def spark(q):
+        r = REIHE[q]; n = len(r)
+        pts = " ".join(f"{(k * 150 / (n - 1) if n > 1 else 75):.1f},{46 - v / YMAX * 42:.1f}" for k, v in enumerate(r))
+        return (f'<svg width="150" height="48" viewBox="0 0 150 48" role="img" aria-label="Verlauf {e(IDX[q]["name"])}: von {pct(r[0])} auf {pct(r[-1])} Prozent">'
+                f'<line x1="0" y1="47" x2="150" y2="47" stroke="#DEE3E6" stroke-width="1"></line>'
+                f'<polyline points="{pts}" fill="none" stroke="#28695E" stroke-width="2.5" stroke-linejoin="round"></polyline></svg>')
+    def parteizeile(q, pre):
+        cfg, s, c = IDX[q], stat[q], stat[q]["c"]
+        det = f"{c['be']} beschlossen · {c['br']} gebrochen" if c["be"] + c["br"] else "erfüllt"
+        kern = (f'<span class="pbz"><span class="pbl"><span>Kernversprechen · von der Partei selbst herausgestellt</span><span>{KS[q]["k"]} von {KS[q]["n"]}</span></span>'
+                f'{stk(KS[q]["c"], KS[q]["n"], "h8", True) if KS[q]["n"] else ""}</span>') if KERN else ""
+        return (f'<a class="prow" href="{pre}{cfg["slug"]}.html"><span class="pn">{e(cfg["name"])}</span>'
+                f'<span class="pb"><span class="pbz"><span class="pbl"><span>Gesamtprogramm · {det}</span><span>{s["k"]} von {s["n"]}</span></span>{stk(c, s["n"])}</span>{kern}</span>'
+                f'<span class="pp">{s["rund"]} %</span><span class="ps">{spark(q)}<span>{delta(q)}</span></span></a>')
+    HAT_BE = any(stat[q]["c"]["be"] for q in IDX); HAT_BR = any(stat[q]["c"]["br"] for q in IDX)
+    def legende(kurve=True, offen="of"):
+        return ('<div class="leg"><span><i class="ok"></i>erfüllt</span>' + ('<span><i class="be"></i>beschlossen</span>' if HAT_BE else "")
+                + ('<span><i class="br"></i>gebrochen oder Frist verfehlt</span>' if HAT_BR else "") + f'<span><i class="{offen}"></i>offen</span>'
+                + ('<span class="kurve">Kurve: Verlauf seit dem Wahltag</span>' if kurve else "") + '</div>')
+    def themen_top(pre, hl):
+        """Die zehn größten Themen des Parlaments: Balkenlänge = Zahl der Zusagen, dunkler Teil = erfüllt."""
+        if not THEMEN_DA: return ""
+        top = sorted(TC, key=lambda m: (-sum(TC[m].values()), CAPNAME[m]))[:10]
+        mx = sum(TC[top[0]].values())
+        def zeile(m):
+            n = sum(TC[m].values()); ok = TC[m]["ok"]
+            return (f'<a class="trow" href="{pre}themen.html#{"t" + str(m) if m in haupt else "tw"}" title="{ok} von {n} Zusagen erfüllt"><span>{e(CAPNAME[m])}</span>'
+                    f'<span class="tb" aria-hidden="true"><span class="ok" style="width:{100 * ok / mx:.2f}%"></span><span class="rest" style="width:{100 * (n - ok) / mx:.2f}%"></span></span>'
+                    f'<span class="tpz">{round(100 * ok / n)} %</span></a>')
+        return (f'<div class="spalte"><h{hl} class="h26">Wo {IM} geliefert wird</h{hl}>'
+                f'<span class="sub">{"Beide" if len(IDX) == 2 else "Alle"} Regierungsparteien · Balkenlänge = Zahl der Zusagen, dunkler Teil = erfüllt</span>'
+                f'<div class="tliste">{"".join(zeile(m) for m in top)}</div><a class="mehr" href="{pre}themen.html">Alle Themen {IM} →</a></div>')
+    def tlzeile(d, tid, txt, wer, pre, lang, kl=""):
+        return (f'<a class="tli{" " + kl if kl else ""}" href="{pre}vorhaben/{tid.rsplit("-", 1)[0].lower()}.html#{tid.rsplit("-", 1)[1].lower()}"><span class="tld{" lang" if lang else ""}">{d}</span>'
+                f'<span class="tlt"><span>{e(txt)}</span><span class="tlw">{wer}</span></span></a>')
+    def zuletzt(pre, hl, kurz, hkl="h26", mehr=""):
+        """Die vier neuesten Statusänderungen (erfüllt, gebrochen, entfallen – Entscheidung 13.11.2026); gebrochene mit rotem Punkt.
+        Liegen alle im Monat des Stands, heißt es „im <Monat>“, sonst „seit dem Wahltag“."""
+        letzte = allc[:4]; im_m = bool(letzte) and all(c[0][:7] == MONTH for c in letzte)
+        lang = not (kurz and im_m)
+        liste = "".join(tlzeile(de(d) if lang else de(d)[:6], tid, x, f'{e(IDX[pk(tid)]["name"])} · {e(art)}', pre, lang, "" if art == "erfüllt" else "br") for d, tid, x, art, b in letzte)
+        return (f'<div class="spalte"><h{hl} class="{hkl}">Zuletzt {IM} geändert</h{hl}>'
+                f'<span class="sub">Statusänderungen {"im " + mon_name if im_m else "seit dem Wahltag"}</span>'
+                + (f'<div class="tl{LKL}">{liste}</div>' if letzte else '<p class="note">Seit dem Wahltag gab es noch keine Statusänderung.</p>') + mehr + '</div>')
+    def startteile(pre, hl):
+        """Zeilen der Parteien, Legende und die Spalten Themen/Zuletzt geändert für Startseite und Länderseite (pre = Pfad zum Ordner des Parlaments)."""
+        return dict(zeilen="".join(parteizeile(q, pre) for q in ORD), legende=legende(),
+                    duo=f'<div class="duo">{themen_top(pre, hl)}{zuletzt(pre, hl, True)}</div>')
+
     # ---------- Übersicht des Parlaments
     PNOTE = "" if KERN else (f'<p class="note" style="margin-top:14px">Für {e(PARL["name"])} gibt es nur den Index Gesamtprogramm. Die Wahlprogramme enthalten keine Kurzfassung, '
                              f'aus der sich Kernversprechen ergeben (<a href="methodik.html#e36">E36</a>).</p>')
     # Programmgrundlage auf der Übersicht eines Landesparlaments: Programme mit Link und PDF-Kopie, darunter der Hinweis zu Absichtssätzen
-    PGRUND = "" if HAUPT else (f'<section id="programmgrundlage" style="margin-top:64px"><h2 class="serif" style="font-size:26px">Programmgrundlage</h2>'
-                               f'<ul style="font-size:15px;color:var(--ink2);margin:12px 0 0;padding-left:18px">'
+    PGRUND = "" if HAUPT else (f'<section id="programmgrundlage" class="abs"><h2 class="h34">Programmgrundlage</h2>'
+                               f'<ul style="font-size:15px;color:var(--ink2);margin:0;padding-left:18px">'
                                + "".join(f"<li style='margin-bottom:6px'>{e(IDX[q]['name'])}: {proglink(IDX[q])}. {e(IDX[q]['basis'])}</li>" for q in ORD)
-                               + f'</ul><div class="plain" style="margin-top:18px;max-width:76ch"><h3 class="serif" style="font-size:20px">Warum manche konkreten Vorhaben nicht zählen</h3>{w_hinweis(PDIR)}'
+                               + f'</ul>{PNOTE}<div class="plain" style="margin-top:6px;max-width:76ch"><h3 class="serif" style="font-size:20px">Warum manche konkreten Vorhaben nicht zählen</h3>{w_hinweis(PDIR)}'
                                f'<p class="note" style="margin:10px 0 0">Regeln: <a href="methodik.html#teilzusage">Was als Teilzusage zählt</a> (E5, E29).</p></div></section>')
-    bald_kopf = f'<span style="font-size:14px">Alle beschlossenen: {bald_mehr}</span>' if bald_mehr else ""
-    bald_liste = bald_html or '<p class="note" style="margin-top:10px">Derzeit keine.</p>'
-    body = f"""<section style="padding-top:36px"><div class="label">{e(PARL['langname'])}</div><h1 class="serif" style="font-size:48px;margin:6px 0 4px">{e(PARL['name'])}</h1></section>
-{BUNDBLOCK}{PNOTE}{PGRUND}
-{chart}
-{THEMEN_HTML}
-<section style="margin-top:64px"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px"><h2 class="serif" style="font-size:26px">Demnächst wirksam</h2>{bald_kopf}</div>
-<p class="note" style="margin-top:6px">Beschlossen, aber am Stichtag noch nicht geltend. Diese Zusagen zählen ab dem Tag, an dem die Vorschrift gilt.</p>
-<div style="margin-top:10px;border-top:1px solid var(--line2)">{bald_liste}</div></section>
-<section style="margin-top:64px"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px"><h2 class="serif" style="font-size:26px">Zuletzt geändert</h2><a href="aenderungen.html" style="font-size:14px">Alle Updates nach Monat</a></div>
-<div style="margin-top:14px;border-top:1px solid var(--line2)">{last}</div></section>"""
-    open(os.path.join(OUT, "index.html"), "w", encoding="utf-8").write(page(f"{PARL['name']} · {PARL['wahlperiode']}. Wahlperiode", body, "", "index.html"))
+    def parteikarte(q):
+        cfg, s, c = IDX[q], stat[q], stat[q]["c"]; offen = s["n"] - c["ok"] - c["be"] - c["br"]
+        kach = "".join(f'<a href="{cfg["slug"]}.html{anker}"><span class="kl"><i class="{cl}"></i>{lab}</span><span class="kn">{n}</span></a>'
+                       for cl, lab, n, anker in (("ok", "erfüllt", c["ok"], "#erfuellt"), ("be", "beschlossen", c["be"], "#beschlossen"), ("br", "gebrochen", c["br"], "#gebrochen"), ("of", "offen", offen, "")))
+        kern = (f'<div class="pkern"><span class="pbl"><span><strong>Kernversprechen</strong> · von der Partei selbst herausgestellt</span><span>{KS[q]["k"]} von {KS[q]["n"]} erfüllt</span></span>'
+                f'{stk(KS[q]["c"], KS[q]["n"], "h10", True) if KS[q]["n"] else ""}</div>') if KERN else ""
+        return (f'<article class="pcard"><div class="pc1"><h2>{e(cfg["name"])}</h2><span>{delta(q)}</span></div>'
+                f'<div class="pc2"><span class="pz">{s["rund"]} %</span><span class="pv">{s["k"]} von {s["n"]} Zusagen erfüllt<br>Gesamtprogramm</span></div>'
+                f'{stk(c, s["n"], "h20")}<div class="kach">{kach}</div>{kern}<a class="mehr" href="{cfg["slug"]}.html">Alle Zusagen der {e(cfg["name"] + ("n" if cfg["name"].endswith("e") else ""))} →</a></article>')
+    def verlauf_neu():
+        """Liniendiagramm Gesamtprogramm vom Wahlmonat bis zum Stand. Anmerkung am Monat mit den meisten wirksam gewordenen Zusagen
+        (ab 10; nur die Zahl, aus den Daten gerechnet – Entscheidung 12.11.2026)."""
+        n = len(months); x0, x1, y0, y1 = 50, 990, 290, 30
+        XX = lambda k: x0 + (k * (x1 - x0) / (n - 1) if n > 1 else 0)
+        YY = lambda v: y0 - v * (y0 - y1) / YMAX
+        gitter = "".join(f'<line x1="{x0}" y1="{YY(v):.0f}" x2="{x1}" y2="{YY(v):.0f}" stroke="{"#BFC9CE" if v == 0 else "#EEF1F2"}"></line>'
+                         f'<text x="{x0 - 8}" y="{YY(v) + 4:.0f}" font-size="13" fill="#5F6A72" text-anchor="end">{v} %</text>' for v in range(0, YMAX + 1, 10 if YMAX <= 50 else 20))
+        tk = [0] + [k for k, m in enumerate(months) if m[5:] in ("01", "07") and 2 <= k <= n - 3] + ([n - 1] if n > 1 else [])
+        achse = "".join(f'<text x="{XX(k):.0f}" y="314" font-size="13" fill="#5F6A72" text-anchor="{"start" if k == 0 else ("end" if k == n - 1 else "middle")}">{months[k][5:]}/{months[k][:4]}</text>' for k in tk)
+        jem = collections.Counter(c[0][:7] for c in ERF)
+        anm = ""
+        if jem:
+            mm, anz = max(jem.items(), key=lambda x: (x[1], x[0]))
+            if anz >= 10 and mm in months:
+                jep = collections.Counter(pk(c[1]) for c in ERF if c[0][:7] == mm)
+                x = XX(months.index(mm)); links = x > (x0 + x1) / 2
+                anm = (f'<line x1="{x:.0f}" y1="{y1}" x2="{x:.0f}" y2="{y0}" stroke="#BFC9CE" stroke-dasharray="3 4"></line>'
+                       f'<text x="{x + (-8 if links else 8):.0f}" y="46" font-size="13" fill="#39424A" text-anchor="{"end" if links else "start"}">{MONL[int(mm[5:]) - 1]} {mm[:4]}: {anz} Zusagen wurden wirksam ({", ".join(f"{e(IDX[q]["name"])} {jep[q]}" for q in ORD if jep[q])})</text>')
+        FARBE = ["#2F5D62", "#16191C", "#875C08", "#5F6A72"]
+        linien = "".join(f'<polyline points="{" ".join(f"{XX(k):.1f},{YY(v):.1f}" for k, v in enumerate(REIHE[q]))}" fill="none" stroke="{FARBE[i % 4]}" stroke-width="3.5" stroke-linejoin="round"></polyline>'
+                         f'<circle cx="{x1}" cy="{YY(REIHE[q][-1]):.1f}" r="5" fill="{FARBE[i % 4]}"></circle>' for i, q in enumerate(ORD))
+        ly = []
+        for i, q in sorted(enumerate(ORD), key=lambda x: -REIHE[x[1]][-1]):
+            y = YY(REIHE[q][-1]) - 3
+            if ly and y < ly[-1][0] + 40: y = ly[-1][0] + 40
+            ly.append((y, i, q))
+        marken = "".join(f'<text x="{x1 + 12}" y="{y:.0f}" font-size="15" fill="{FARBE[i % 4]}" font-weight="700">{e(IDX[q]["name"])}</text>'
+                         f'<text x="{x1 + 12}" y="{y + 18:.0f}" font-size="14" fill="{FARBE[i % 4]}">{stat[q]["rund"]} %</text>' for y, i, q in ly)
+        aria = ", ".join(f"{IDX[q]['name']} von {pct(REIHE[q][0])} auf {pct(REIHE[q][-1])} Prozent" for q in ORD)
+        return (f'<svg viewBox="0 0 1100 340" role="img" aria-label="Liniendiagramm, {mlabel(months[0])} bis {mlabel(MONTH)}: {e(aria)}">{gitter}{achse}{anm}{linien}{marken}</svg>')
+    # Vorhaben für Vorhaben: je Partei alle Kapitel; Balkenlänge = Zahl der Zusagen (gemessen am größten Kapitel des Parlaments)
+    VZ = {}
+    for q in ORD:
+        zl = []
+        for it in (i for i in items if i["item_id"].startswith(q + "-")):
+            c = collections.Counter(status(t, ST)[1] for t in tzs if t["item_id"] == it["item_id"])
+            zl.append(dict(it=it, c=c, n=sum(c.values()), aktiv=it["status"] == "aktiv"))
+        for r, z in enumerate(sorted(zl, key=lambda z: (not z["aktiv"], -(z["c"]["ok"] / z["n"] if z["n"] else 0), -z["c"]["ok"], z["it"]["item_id"]))): z["rang"] = r
+        VZ[q] = zl
+    VMAX = max((z["n"] for q in ORD for z in VZ[q]), default=1) or 1
+    def vzeile(z):
+        it, c, n = z["it"], z["c"], z["n"]
+        if not z["aktiv"]:
+            return (f'<div class="vrow aus" style="--o:{z["rang"]}"><span>{e(it["title_de"])}</span><span class="vb"></span><span class="vz">nicht gezählt</span><span></span></div>')
+        seg = "".join(f'<span class="{cl or "of"}" style="width:{100 * k / VMAX:.2f}%"></span>' for cl, k in (("ok", c["ok"]), ("be", c["be"]), ("br", c["br"]), ("", c[""])) if k)
+        return (f'<a class="vrow" style="--o:{z["rang"]}" href="vorhaben/{it["item_id"].lower()}.html"><span>{e(it["title_de"])}</span><span class="vb" aria-hidden="true">{seg}</span>'
+                f'<span class="vz">{c["ok"]} von {n}</span><span class="vp" aria-hidden="true">›</span></a>')
+    VORHABEN = (f'<section class="abs">'
+                + "".join(f'<input type="radio" name="vp" id="vp-{i}" class="sr"{" checked" if i == 0 else ""}>' for i in range(len(ORD)))
+                + '<input type="radio" name="vs" id="vs-p" class="sr" checked><input type="radio" name="vs" id="vs-g" class="sr">'
+                + '<div class="vvk"><div><h2 class="h34">Vorhaben für Vorhaben</h2><span class="sub15">Jede Zeile ist ein Kapitel des Wahlprogramms · Balkenlänge = Zahl der Zusagen · Klick öffnet das Vorhaben</span></div>'
+                + '<div class="vvw"><div class="seg" role="group" aria-label="Partei">' + "".join(f'<label for="vp-{i}">{e(IDX[q]["name"])}</label>' for i, q in enumerate(ORD)) + '</div>'
+                + '<div class="seg" role="group" aria-label="Sortierung"><label for="vs-p">Reihenfolge im Programm</label><label for="vs-g">Nach Erfüllungsgrad</label></div></div></div>'
+                + '<div class="vvbox">' + "".join(f'<div class="vvl vp-{i}">{"".join(vzeile(z) for z in VZ[q])}</div>' for i, q in enumerate(ORD)) + legende(False, "of2") + '</div></section>')
+    bald_liste = ("".join(tlzeile(de(t["erfuellt_ab"]) if t["erfuellt_ab"] else "offen", t["tz_id"], t["text_de"],
+                                  e(cfg["name"]) + ("" if t["erfuellt_ab"] else " · Verkündung ausstehend"), "", True) for t, cfg in bald[:6]))
+    DEMNAECHST = (f'<div class="spalte"><h2 class="h28">Demnächst wirksam</h2><span class="sub">Beschlossen, gilt aber noch nicht – zählt erst ab dem Stichtag</span>'
+                  + (f'<div class="tl be">{bald_liste}</div>' if bald_liste else '<p class="note">Derzeit keine.</p>')
+                  + (f'<span class="sub">Alle beschlossenen: {bald_mehr}</span>' if bald_mehr else "") + '</div>')
+    pfad = '<a href="_aktuell.html">Start</a><span>›</span>' + ('' if BUND_E else '<a href="laender.html">Länder</a><span>›</span>') + f'<span style="color:var(--ink)">{e(PARL["name"])}</span>'
+    body = f"""<section class="band kopf{LKL}"><div class="bandin">
+<nav class="pfad" aria-label="Pfad">{pfad}</nav>
+<div class="pkopf"><div class="pk1"><span class="ebene{LKL}">{"BUND" if BUND_E else "LAND"}</span><span class="ptit">{flagge(PDIR, "gr")}<h1>{PTITEL}</h1></span><span class="pmeta">{PMETA}</span></div>{WPZ}</div>
+@@TABS@@
+</div></section>
+<div class="wrap grau">
+<section class="pcards">{"".join(parteikarte(q) for q in ORD)}</section>
+<section class="abs"><h2 class="h34">Verlauf in der Wahlperiode</h2><span class="sub15">Anteil erfüllter Zusagen, Gesamtprogramm, jeweils Monatsende</span>
+<div class="cbox">{verlauf_neu()}</div></section>
+{VORHABEN}
+<section class="abs{"" if PGRUND else " ende"}"><div class="duo">{DEMNAECHST}{zuletzt("", 2, False, "h28", f'<a class="mehr" href="aenderungen.html">Alle Updates {IM} →</a>')}</div></section>
+{PGRUND}{'<div style="height:64px"></div>' if PGRUND else ''}
+</div>"""
+    open(os.path.join(OUT, "index.html"), "w", encoding="utf-8").write(page(f"{PARL['name']} · {PARL['wahlperiode']}. Wahlperiode", body, "", "index.html", frei=True))
+    if THEMEN_DA:
+        open(os.path.join(OUT, "themen.html"), "w", encoding="utf-8").write(page(f"Themen {PARL['name']}", THEMEN_HTML, "", "themen.html"))
 
-    # ---------- Aktuell (Startseite): Bund groß, Spotlight und Monatsliste, Länder, So entsteht die Zahl
+    # ---------- Aktuell (Startseite): Ebenen-Karten, Neu im Monat, Band Bund, Band Länder, So entsteht die Zahl
     BF = json.load(open(os.path.join(D, "befunde.json"), encoding="utf-8")) if os.path.exists(os.path.join(D, "befunde.json")) else []
     if not HAUPT: BF = []  # Spotlights gehören zum Hauptlauf
     spot = max((b for b in BF if b["stand"] <= MONTH), key=lambda b: b["id"], default=None)
-    mon_name = f"{MONL[int(MONTH[5:]) - 1]} {MONTH[:4]}"
-    im_monat = sorted(changes.get(MONTH, []), key=lambda c: (c[1] not in KERNSET, c[0], c[1]))
-    def mzeile(c):
-        d, tid, x, art, b = c
-        return (f'<div class="mz"><span class="ptag">{e(PARL["kurz"])}</span><span><a href="vorhaben/{tid.rsplit("-", 1)[0].lower()}.html#{tid.rsplit("-", 1)[1].lower()}">{e(x)}</a>{kmark(tid)}'
-                f'<br><span style="font-size:13px;color:var(--mut)">{e(IDX[pk(tid)]["name"])} · {e(art)} ab {de(d)}</span></span></div>')
-    MAXM = 8
-    if not im_monat:
-        mliste = f'<p class="note">Im {mon_name} keine Statusänderung.</p>'
-    elif len(im_monat) <= MAXM:
-        mliste = "".join(mzeile(c) for c in im_monat)
-    else:
-        z = collections.Counter(c[3] for c in im_monat)
-        mliste = f'<p style="font-size:15px">{e(PARL["name"])}: ' + ", ".join(f"{n} {a}" for a, n in z.items()) + f' · <a href="aenderungen.html#m{MONTH}">alle ansehen →</a></p>'
-    if any(x["monat"] for x in EXTERN):
-        def mz_ext(x, c):
-            d, tid, txt, art, b = c
-            cfg = x["IDX"][max((k for k in x["IDX"] if tid.startswith(k + "-")), key=len)]
-            return (f'<div class="mz"><span class="ptag">{e(x["P"]["kurz"])}</span><span><a href="{x["P"]["parlament_id"]}/vorhaben/{tid.rsplit("-", 1)[0].lower()}.html#{tid.rsplit("-", 1)[1].lower()}">{e(txt)}</a>'
-                    f'<br><span style="font-size:13px;color:var(--mut)">{e(cfg["name"])} · {e(art)} ab {de(d)}</span></span></div>')
-        alle_m = ([((c[1] not in KERNSET, c[0], 0, c[1]), mzeile(c)) for c in im_monat]
-                  + [((True, c[0], 1, c[1]), mz_ext(x, c)) for x in EXTERN for c in x["monat"]])
-        if len(alle_m) <= MAXM:
-            mliste = "".join(h for _, h in sorted(alle_m))
-        else:
-            def msum(name, lst, href):
-                z = collections.Counter(c[3] for c in lst)
-                return f'<p style="font-size:15px">{e(name)}: ' + ", ".join(f"{n} {a}" for a, n in z.items()) + f' · <a href="{href}#m{MONTH}">alle ansehen →</a></p>'
-            mliste = ((msum(PARL["name"], im_monat, "aenderungen.html") if im_monat else "")
-                      + "".join(msum(x["P"]["name"], x["monat"], x["P"]["parlament_id"] + "/updates.html") for x in EXTERN if x["monat"]))
-    if spot:
-        spot_html = (f'<a class="spotbild" href="befunde/{spot["id"]}.html" aria-label="Spotlight: {e(spot["titel"])}"><img src="befunde/{spot["id"]}-quer.png" alt="{e(spot["titel"])}" width="1200" height="630"></a>'
-                     f'<p style="font-size:15px;color:var(--ink2);margin:14px 0 0">{e(spot["einleitung"])}</p>'
-                     f'<p style="font-size:14.5px;margin:12px 0 0"><a href="befunde/{spot["id"]}.html">Zum Spotlight →</a> · <a href="befunde.html">Alle Spotlights →</a></p>')
-    else:
-        spot_html = '<p class="note">Noch kein Spotlight.</p>'
-    body = f"""{HERO}
-<section style="margin-top:28px"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px"><h2 class="serif" style="font-size:30px">{e(PARL['name'])}</h2><a href="index.html" style="font-size:15px">Alles zum {e(PARL['name'])} →</a></div>
-{BUNDBLOCK}</section>
-<section style="margin-top:64px"><h2 class="serif" style="font-size:26px">Spotlight {e(spot['monat']) if spot else e(mon_name)}</h2>
-<div class="spotgrid" style="margin-top:18px"><div>{spot_html}</div>
-<div class="plain"><h3 class="serif" style="font-size:20px">Im {mon_name} geändert</h3><p class="note" style="margin:4px 0 10px">Alle Statusänderungen des Monats aus allen Parlamenten, Kernversprechen zuerst.</p>{mliste}</div></div></section>
-@@LAENDER@@
-{SOENTSTEHT}"""
-    open(os.path.join(OUT, "_aktuell.html"), "w", encoding="utf-8").write(page("DeliverPolitics – Versprochen. Gehalten?", body, "", "_aktuell.html"))
-
-    # ---------- Länder (Übersicht); Länder „in Vorbereitung“ ohne Werte
+    ST_TEILE = startteile("" if HAUPT else PDIR + "/", "@@H@@")
     LORD = sorted(LAENDER, key=lambda r: (r["wahltag"], r["name"]))
     EX = {x["P"]["parlament_id"]: x for x in EXTERN}
-    def lkarte(r):
-        kopf = (f'<div class="serif" style="font-size:21px;font-weight:600">{e(r["name"])}</div>'
-                f'<div style="font-size:14px;color:var(--ink2);margin-top:2px">{e(r["langname"])}</div>'
-                f'<div style="font-size:14px;color:var(--mut);margin-top:2px">{r["wahlperiode"]}. Wahlperiode · Wahltag {de(r["wahltag"])}</div>')
-        x = EX.get(r["parlament_id"])
-        if not x:
-            return f'<div class="lk">{kopf}<span class="lstatus">{e(r["status"])}</span></div>'
-        pd = r["parlament_id"]
-        zeilen = "".join(
-            f'<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><a href="{pd}/{x["IDX"][q]["slug"]}.html" style="font-weight:600">{e(x["IDX"][q]["name"])}</a>'
-            f'<span class="mono" style="font-size:13.5px;color:var(--ink2)"><b style="font-size:17px;color:var(--ink)">{x["stat"][q]["rund"]} %</b> · {x["stat"][q]["k"]} von {x["stat"][q]["n"]}</span></div>'
-            f'<div style="height:6px;background:var(--line);margin-top:5px" aria-hidden="true"><div style="width:{100 * x["stat"][q]["k"] / x["stat"][q]["n"]:.1f}%;height:100%;background:var(--ok)"></div></div></div>'
-            for q in x["ORD"])
-        return f'<div class="lk">{kopf}{zeilen}<div style="margin-top:14px;font-size:14.5px"><a href="{pd}/index.html">Alles zu {e(r["name"])} →</a></div></div>'
+    L_AKT = [EX[r["parlament_id"]] for r in LORD if r["parlament_id"] in EX]; L_VOR = [r for r in LORD if r["parlament_id"] not in EX]
+    def laenderband(hl):
+        """Band „Landtage“ für Startseite (hl=2) und Länderseite (hl=1): je veröffentlichtem Land ein Artikel wie beim Bund, übrige gestrichelt."""
+        def artikel(x):
+            r = x["P"]; t = x["teile"]
+            return (f'<article class="lart"><div class="lkopf"><div class="pk1"><span class="ptit">{flagge(r["parlament_id"], "kl")}<h{hl + 1}>{e(r["name"])}</h{hl + 1}></span>'
+                    f'<span class="pmeta">{x["pmeta"]}</span></div>{x["wpz"]}</div>{t["zeilen"]}{t["legende"]}{t["duo"].replace("@@H@@", str(hl + 2))}'
+                    f'<div class="lfuss"><a class="knopf land" href="{r["parlament_id"]}/index.html">Alles zu {e(r["name"])} →</a></div></article>')
+        vor = (f'<div class="vorb"><h{hl + 1} class="vtit">In Vorbereitung</h{hl + 1}><div class="vgrid">'
+               + "".join(f'<div class="vk"><b>{e(r["name"])}</b><span>{r["wahlperiode"]}. WP · Wahltag {de(r["wahltag"])}</span></div>' for r in L_VOR) + '</div></div>') if L_VOR else ""
+        return (f'<section id="laender" class="band land"><div class="bandin"><div class="pkopf"><div class="pk1"><span class="ebene land">LÄNDER</span>'
+                f'<span class="ptit">{_icon(I_LAND, 44, 1.5)}<h{hl}>Landtage</h{hl}></span></div>'
+                f'<div class="lzahl"><span>{len(L_AKT)} von {len(LORD)} Landtagen aktiv</span><span class="lseg" aria-hidden="true">{"".join("<span class=an></span>" for _ in L_AKT)}{"".join("<span></span>" for _ in L_VOR)}</span></div></div>'
+                f'{"".join(artikel(x) for x in L_AKT)}{vor}</div></section>')
+    n_bund = len(NEU_MONAT); n_land = sum(x["neu"] for x in EXTERN); n_neu = n_bund + n_land
+    neu_satz = ("<span>Keine Zusage wurde wirksam.</span>" if not n_neu else f'<span><strong>{n_neu} Zusage{"n" if n_neu != 1 else ""}</strong> wurde{"n" if n_neu != 1 else ""} wirksam:</span>'
+                f'<span class="nz"><span class="marke">BUND</span>{n_bund}</span>' + (f'<span class="nz"><span class="marke land">LAND</span>{n_land}</span>' if L_AKT else ""))
+    lkarte_txt = (f'{len(L_AKT)} von {len(LORD)} aktiv' + "".join(f' · {e(x["P"]["name"])}: ' + " · ".join(f'{e(x["IDX"][q]["name"])} {x["stat"][q]["rund"]} %' for q in x["ORD"]) for x in L_AKT))
+    ECARDS = (f'<section class="ecards" aria-label="Ebene wählen"><a class="ecard" href="#bund"><span class="ek">{_icon(I_BUND)}<span class="ekt">BUND</span><span class="ef">{flagge(PDIR, "kl")}</span></span>'
+              f'<span class="et">{PTITEL}</span><span class="es">{PARL["wahlperiode"]}. Wahlperiode · {" · ".join(f"{e(IDX[q]["name"])} {stat[q]["rund"]} %" for q in ORD)}</span><span class="ew">Zum Bund ↓</span></a>'
+              + (f'<a class="ecard land" href="#laender"><span class="ek">{_icon(I_LAND)}<span class="ekt">LÄNDER</span><span class="ef">{"".join(flagge(x["P"]["parlament_id"], "kl") for x in L_AKT)}</span></span>'
+                 f'<span class="et">Landtage</span><span class="es">{lkarte_txt}</span><span class="ew">Zu den Ländern ↓</span></a>' if LORD else "") + '</section>')
+    body = f"""<div class="wrap">
+<section class="hero2"><h1>Versprochen. Gehalten?</h1>
+<p>Wie viel haben die Parteien von ihrem Wahlprogramm umgesetzt? DeliverPolitics prüft jede Zusage gegen geltendes Recht – Zusage für Zusage, Monat für Monat.</p>
+<a href="ueber.html#warum">Warum dieser Index? →</a></section>
+{ECARDS}
+<section class="neu"><span class="nl">Neu im {mon_name}</span>{neu_satz}<a class="mehr" href="{f'befunde/{spot["id"]}.html' if spot else 'befunde.html'}">Zum Spotlight →</a></section>
+</div>
+<section id="bund" class="band"><div class="bandin">
+<div class="pkopf"><div class="pk1"><span class="ebene">BUND</span><span class="ptit">{flagge(PDIR)}<h2>{PTITEL}</h2></span><span class="pmeta">{PMETA}</span></div>{WPZ}</div>
+<div class="pbox">{ST_TEILE["zeilen"]}{ST_TEILE["legende"]}</div>
+{ST_TEILE["duo"].replace("@@H@@", "3")}
+<a class="knopf" href="index.html">Alles {ZU} →</a>
+</div></section>
+{'<div style="height:56px"></div>' + laenderband(2) if LORD else ''}
+<div class="wrap"><section class="soz"><h2 class="h34">So entsteht die Zahl</h2><span>Dieselben Regeln in Bund und Ländern.</span>
+<div class="sgrid"><div class="sk">{_icon(I_ZERLEGEN, 40)}<b>1 · Zerlegen</b><span>Das Wahlprogramm wird in überprüfbare Zusagen zerlegt.</span></div>
+<div class="sk">{_icon(I_PRUEFEN, 40)}<b>2 · Prüfen</b><span>Für jede Zusage steht vorab fest, wann sie erfüllt ist. Maßgeblich ist geltendes Recht.</span></div>
+<div class="sk">{_icon(I_ZAEHLEN, 40)}<b>3 · Zählen</b><span>Der Index ist der Anteil erfüllter Zusagen. Jede zählt gleich.</span></div></div>
+<a class="mehr" href="methodik.html">So messen wir →</a></section></div>"""
+    open(os.path.join(OUT, "_aktuell.html"), "w", encoding="utf-8").write(page("DeliverPolitics – Versprochen. Gehalten?", body, "", "_aktuell.html", frei=True))
+
+    # ---------- Länder (Übersicht): dasselbe Band wie auf der Startseite; Länder „in Vorbereitung“ ohne Werte
     LHINWEIS = ("„In Vorbereitung“ heißt: Die Wahlprogramme der Parteien, die die Landesregierung bilden, werden in überprüfbare Zusagen zerlegt und gegen geltendes Recht geprüft. "
                 "Gemessen werden nur die Regierungsparteien, nach denselben Regeln wie im Bund (E37). Die Werte erscheinen, sobald die Regierung gebildet und die Prüfung abgeschlossen ist.")
-    body = f"""<section style="padding-top:40px;max-width:76ch"><h1 class="serif" style="font-size:48px;margin-bottom:12px">Länder</h1>
-<p class="lead">Was die Regierungsparteien in den Ländern versprochen haben – und was sie davon umsetzen. Aufgenommen werden die Länder, die 2026 gewählt haben.</p></section>
-<section class="lgrid" style="margin-top:28px">{"".join(lkarte(r) for r in LORD)}</section>
-<p class="note" style="margin-top:16px;max-width:76ch">{LHINWEIS} <a href="methodik.html#e37">Regel E37 →</a></p>"""
-    open(os.path.join(OUT, "laender.html"), "w", encoding="utf-8").write(page("Länder", body, "", "laender.html"))
-    akt = open(os.path.join(OUT, "_aktuell.html"), encoding="utf-8").read()
-    lsek = (f'<section style="margin-top:64px"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px"><h2 class="serif" style="font-size:26px">Länder</h2><a href="laender.html" style="font-size:15px">Alle Länder →</a></div>'
-            f'<div class="lgrid kompakt" style="margin-top:16px">{"".join(lkarte(r) for r in LORD)}</div></section>') if LORD else ""
-    open(os.path.join(OUT, "_aktuell.html"), "w", encoding="utf-8").write(akt.replace("@@LAENDER@@", lsek))
+    body = f"""{laenderband(1)}
+<div class="wrap"><section class="abs ende" style="max-width:76ch"><p class="lead" style="margin:0">Was die Regierungsparteien in den Ländern versprochen haben – und was sie davon umsetzen. Aufgenommen werden die Länder, die 2026 gewählt haben.</p>
+<p class="note" style="margin:0">{LHINWEIS} <a href="methodik.html#e37">Regel E37 →</a></p></section></div>"""
+    open(os.path.join(OUT, "laender.html"), "w", encoding="utf-8").write(page("Länder", body, "", "laender.html", frei=True))
 
 
     # ---------- Seite Kernversprechen (beide Parteien, nach Kernwert geordnet)
@@ -1261,6 +1526,8 @@ def lauf(MONTH, OUT, EXTERN):
             return f"Gesamtprogramm im Vergleich: " + ", ".join(f"{IDX[q]['name']} {stat[q]['k']} von {stat[q]['n']} Zusagen erfüllt" for q in ORD) + f" ({st_})."
         if rel_ == f"{PDIR}/kernversprechen.html":
             return "Kernversprechen – was die Parteien selbst herausgestellt haben: " + ", ".join(f"{IDX[q]['name']} {KS[q]['k']} von {KS[q]['n']} erfüllt" for q in ORDK) + f" ({st_})."
+        if rel_ == f"{PDIR}/themen.html":
+            return f"Themen {PARL['name']}: alle Zusagen von {' und '.join(IDX[q]['name'] for q in ORD)} nach Politikfeldern – wo viel und wo wenig umgesetzt ist ({st_})."
         if rel_ == f"{PDIR}/updates.html":
             return f"Updates: jede Statusänderung einer Wahlprogramm-Zusage von {' und '.join(IDX[q]['name'] for q in ORD)} mit Datum der Geltung und amtlichem Beleg, Monat für Monat ({st_})."
         m_ = re.match(rf"{PDIR}/vorhaben/(.+)\.html$", rel_)
@@ -1301,7 +1568,8 @@ def lauf(MONTH, OUT, EXTERN):
                 shutil.rmtree(p_) if os.path.isdir(p_) else os.remove(p_)
         if not KERN and os.path.exists(os.path.join(OUT, PDIR, "kernversprechen.html")): os.remove(os.path.join(OUT, PDIR, "kernversprechen.html"))
         if fehlende_pdf: print("Hinweis – Programmkopien nicht im Build enthalten:", ", ".join(fehlende_pdf))
-        return dict(P=PARL, dir=OUT, IDX=dict(IDX), ORD=list(ORD), stat=stat, monat=sorted(changes.get(MONTH, [])), start=months[0])
+        return dict(P=PARL, dir=OUT, IDX=dict(IDX), ORD=list(ORD), stat=stat, monat=sorted(changes.get(MONTH, [])), start=months[0],
+                    teile=ST_TEILE, pmeta=PMETA, wpz=WPZ, neu=len(NEU_MONAT))
     for x in EXTERN:  # Ordner der weiteren Parlamente übernehmen
         shutil.copytree(x["dir"], OUT, dirs_exist_ok=True); shutil.rmtree(x["dir"])
     PRIO9 = {f"{PDIR}/index.html"} | {x["P"]["parlament_id"] + "/index.html" for x in EXTERN}
