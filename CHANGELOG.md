@@ -2,6 +2,13 @@
 
 Hier steht jede Änderung an der veröffentlichten Website mit Datum und einem Satz. Neueste Einträge zuerst. Inhaltliche und methodische Änderungen stehen zusätzlich im Abschnitt „Korrekturen“ der Seite „So messen wir“ bzw. im monatlichen Update.
 
+## 2026-11-13
+
+- Neues Erscheinungsbild, Etappe 1: Startseite (Bund und Länder getrennt, „Neu im Monat“, die zehn größten Themen je Parlament, zuletzt geänderte Zusagen), Länderseite und die Übersichten von Bund und Baden-Württemberg (Karten je Partei, Verlauf als Liniendiagramm, „Vorhaben für Vorhaben“, „Demnächst wirksam“).
+- Die Themen stehen je Parlament auf einer eigenen Seite (`themen.html`, Reiter „Themen“); Kopfzeile, Reiter und Fußzeile sind auf allen Seiten angepasst.
+- Das Programm bricht jetzt ab, wenn in den Daten die Spalte `bewertung` und der berechnete Status einer Zusage voneinander abweichen.
+- Korrektur: Die Zusage CDU-09 T17 („keine Entlassung von Beamten und Soldaten durch Verwaltungsakt ohne richterlichen Beschluss“) war als erfüllte Bestandszusage gezählt, obwohl sie als nicht erfüllt bewertet ist. CDU/CSU im Oktober 2026: 29,9 % statt 30,1 % (100 statt 101 von 335 Zusagen), gerundet weiter 30 %. Die Werte ab Februar 2025 sind um diese eine Zusage berichtigt; die bisherigen Oktoberwerte bleiben in den Daten erhalten.
+
 ## 2026-11-12
 
 - Neu: Baden-Württemberg, 18. Wahlperiode – Index für Grüne (13,6 %, 30 von 221 Zusagen) und CDU (10,5 %, 27 von 256), Stand 31.10.2026; Übersicht mit Themen, Programmgrundlage und Hinweis zu Absichtssätzen, 45 Vorhabenseiten, Updates.
