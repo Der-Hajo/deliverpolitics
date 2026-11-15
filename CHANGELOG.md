@@ -2,6 +2,16 @@
 
 Hier steht jede Änderung an der veröffentlichten Website mit Datum und einem Satz. Neueste Einträge zuerst. Inhaltliche und methodische Änderungen stehen zusätzlich im Abschnitt „Korrekturen“ der Seite „So messen wir“ bzw. im monatlichen Update.
 
+## 2026-11-15
+
+- Neues Erscheinungsbild, Etappe 2: Jede Partei hat eine eigene Seite „alle Zusagen“ mit zugeklappten Kapiteln (Balken und „x von y“), Filter nach Status (erfüllt, beschlossen, gebrochen oder Frist verfehlt, offen), „Alle aufklappen“ und Link zum Vorhaben je Kapitel.
+- Vorhaben-Seiten: je Zusage eine Karte, Prüfmaßstab und Rechtsakt/Beleg sind sofort sichtbar; Kopf mit „x von y“, Balken, vier Statuskacheln und Verlauf; Zitierhilfe; Link zum nächsten Vorhaben.
+- Alle Seiten eines Parlaments haben dasselbe Kopfband (Flagge, Name, Stand) mit Pfad ab „Start“ und den Reitern Übersicht · je Partei · Kernversprechen · Themen · Updates. Der Reiter „Gesamtprogramm“ entfällt; `gesamtprogramm.html` bleibt als kurze Seite mit Verweis.
+- Kernversprechen, Themen und Updates im neuen Erscheinungsbild; Verlauf der Kernversprechen als Liniendiagramm; Balken der Kernversprechen zeigen jetzt auch beschlossene und gebrochene Zusagen.
+- Auf der Website heißt es durchgehend „Zusagen“ statt „Teilzusagen“ (einmal erklärt auf „So messen wir“; das Regelwerk dort bleibt unverändert). Die Überzeile „Delivery Index“ entfällt. Zusagen beginnen in Listen mit Großbuchstaben.
+- Startseite und Länderseite: Link „Alle Updates“ je Parlament.
+- Balken auf der Startseite und den Übersichten: Der rote Teil (gebrochen oder Frist verfehlt) steht wieder am rechten Rand, erfüllt und beschlossen links.
+
 ## 2026-11-13
 
 - Neues Erscheinungsbild, Etappe 1: Startseite (Bund und Länder getrennt, „Neu im Monat“, die zehn größten Themen je Parlament, zuletzt geänderte Zusagen), Länderseite und die Übersichten von Bund und Baden-Württemberg (Karten je Partei, Verlauf als Liniendiagramm, „Vorhaben für Vorhaben“, „Demnächst wirksam“).
